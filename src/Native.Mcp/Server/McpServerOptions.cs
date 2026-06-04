@@ -40,7 +40,10 @@ public sealed class McpServerOptions
     /// <param name="inputTypeInfo">JSON type info for the input.</param>
     /// <param name="outputTypeInfo">JSON type info for the output.</param>
     /// <returns>This options instance, for chaining.</returns>
-    public McpServerOptions AddTool<TTool, TInput, TOutput>(
+    public McpServerOptions AddTool<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTool,
+        TInput,
+        TOutput>(
         JsonTypeInfo<TInput> inputTypeInfo,
         JsonTypeInfo<TOutput> outputTypeInfo)
         where TTool : class, IMcpTool<TInput, TOutput>
@@ -76,7 +79,10 @@ public sealed class McpServerOptions
     /// <typeparam name="TOutput">The tool output type.</typeparam>
     /// <param name="context">The serializer context that knows both types.</param>
     /// <returns>This options instance, for chaining.</returns>
-    public McpServerOptions AddTool<TTool, TInput, TOutput>(
+    public McpServerOptions AddTool<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTool,
+        TInput,
+        TOutput>(
         System.Text.Json.Serialization.JsonSerializerContext context)
         where TTool : class, IMcpTool<TInput, TOutput>
         where TInput : class
@@ -158,6 +164,6 @@ public sealed class McpServerOptions
 /// <param name="Lifetime">The DI lifetime for the tool.</param>
 /// <param name="Descriptor">The runtime descriptor.</param>
 internal sealed record McpToolRegistration(
-    Type ToolType,
+    [property: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type ToolType,
     ServiceLifetime Lifetime,
     McpToolDescriptor Descriptor);

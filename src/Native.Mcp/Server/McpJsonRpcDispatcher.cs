@@ -29,6 +29,8 @@ public sealed class McpJsonRpcDispatcher
     private readonly IServiceProvider _serviceProvider;
     private readonly IMcpInputValidator _validator;
     private readonly IMcpMetrics _metrics;
+    private readonly IMcpToolLogger _toolLogger;
+    private readonly IMcpTracer _tracer;
     private readonly ILogger<McpJsonRpcDispatcher> _logger;
     private readonly TimeProvider _timeProvider;
 
@@ -38,7 +40,9 @@ public sealed class McpJsonRpcDispatcher
     /// <param name="serviceProvider">The (request-scoped) service provider used to resolve tools.</param>
     /// <param name="validator">Input validator (pass-through if validation is not configured).</param>
     /// <param name="metrics">Metrics sink (no-op if telemetry is not configured).</param>
-    /// <param name="logger">Structured logger.</param>
+    /// <param name="toolLogger">Structured per-call logger (no-op if not configured).</param>
+    /// <param name="tracer">Distributed tracing tracer (no-op if not configured).</param>
+    /// <param name="logger">Internal diagnostic logger (for unhandled exceptions).</param>
     /// <param name="timeProvider">Time source (for duration and timestamps).</param>
     public McpJsonRpcDispatcher(
         IMcpToolRegistry registry,
@@ -46,6 +50,8 @@ public sealed class McpJsonRpcDispatcher
         IServiceProvider serviceProvider,
         IMcpInputValidator validator,
         IMcpMetrics metrics,
+        IMcpToolLogger toolLogger,
+        IMcpTracer tracer,
         ILogger<McpJsonRpcDispatcher> logger,
         TimeProvider timeProvider)
     {
@@ -54,6 +60,8 @@ public sealed class McpJsonRpcDispatcher
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
+        _toolLogger = toolLogger ?? throw new ArgumentNullException(nameof(toolLogger));
+        _tracer = tracer ?? throw new ArgumentNullException(nameof(tracer));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
@@ -201,7 +209,7 @@ public sealed class McpJsonRpcDispatcher
             _metrics.RecordValidationFailure(toolName);
             var problem = McpProblems.ValidationFailed(
                 "The 'arguments' payload does not match the tool's input schema.", requestId);
-            return ToolErrorEnvelope(request.Id, problem, context, startedAt);
+            return FailToolCall(request.Id, problem, context, startedAt, outcome: "validation_failed");
         }
 
         // 2. Validate input.
@@ -209,15 +217,18 @@ public sealed class McpJsonRpcDispatcher
         if (validationProblem is not null)
         {
             _metrics.RecordValidationFailure(toolName);
-            return ToolErrorEnvelope(request.Id, validationProblem, context, startedAt);
+            return FailToolCall(request.Id, validationProblem, context, startedAt, outcome: "validation_failed");
         }
 
         // 3. Execute the tool.
         McpToolInvocationResult invocation;
         try
         {
-            invocation = await descriptor.Invoker(_serviceProvider, input, context, cancellationToken)
-                .ConfigureAwait(false);
+            using (_tracer.BeginSubsegment(McpTraceSegments.ToolExecute))
+            {
+                invocation = await descriptor.Invoker(_serviceProvider, input, context, cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -234,19 +245,25 @@ public sealed class McpJsonRpcDispatcher
 
             _metrics.RecordToolCall(toolName, success: false, DurationMs(startedAt));
             var problem = McpErrorMapper.MapException(ex, requestId);
-            return ToolErrorEnvelope(request.Id, problem, context, startedAt);
+            return FailToolCall(request.Id, problem, context, startedAt, outcome: "error");
         }
 
         if (!invocation.IsSuccess)
         {
             var error = invocation.Error!;
-            if (string.Equals(error.Type, ProblemTypes.Forbidden, StringComparison.Ordinal))
+            var isForbidden = string.Equals(error.Type, ProblemTypes.Forbidden, StringComparison.Ordinal);
+            if (isForbidden)
             {
                 _metrics.RecordScopeDenied(toolName, error.Detail);
             }
 
             _metrics.RecordToolCall(toolName, success: false, DurationMs(startedAt));
-            return ToolErrorEnvelope(request.Id, EchoRequestId(error, requestId), context, startedAt);
+            return FailToolCall(
+                request.Id,
+                EchoRequestId(error, requestId),
+                context,
+                startedAt,
+                outcome: isForbidden ? "forbidden" : "tool_failure");
         }
 
         // 4. Success: serialize data via the tool's own JsonTypeInfo.
@@ -255,16 +272,19 @@ public sealed class McpJsonRpcDispatcher
         var envelope = SwepayEnvelopeFactory.BuildSuccess(dataNode, metadata);
 
         _metrics.RecordToolCall(toolName, success: true, metadata.DurationMs);
+        _toolLogger.LogToolExecuted(context, outcome: "success", metadata.DurationMs, envelopeSuccess: true);
         return Ok(BuildToolCallResponse(request.Id, envelope, isError: false));
     }
 
-    private McpDispatchResult ToolErrorEnvelope(
+    private McpDispatchResult FailToolCall(
         JsonElement? id,
         SwepayProblemDetails problem,
         McpExecutionContext context,
-        DateTimeOffset startedAt)
+        DateTimeOffset startedAt,
+        string outcome)
     {
         var metadata = BuildMetadata(context, startedAt);
+        _toolLogger.LogToolExecuted(context, outcome, metadata.DurationMs, envelopeSuccess: false);
         var envelope = SwepayEnvelopeFactory.BuildFailure(problem, metadata);
         return Ok(BuildToolCallResponse(id, envelope, isError: true));
     }

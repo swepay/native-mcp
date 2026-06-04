@@ -11,9 +11,9 @@
 
     <!-- Package metadata -->
     <PackageId>Native.Mcp</PackageId>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Authors>Swepay</Authors>
-    <Description>Model Context Protocol (MCP) server runtime for .NET 10 Native AOT Lambdas behind API Gateway HTTP API with a JWT Authorizer. JSON-RPC 2.0 routing, declarative tools, canonical Swepay envelope, RFC 9457 problem details, and CloudWatch EMF telemetry.</Description>
+    <Description>Transport-agnostic Model Context Protocol (MCP) server runtime for .NET 10 Native AOT. JSON-RPC 2.0 routing, declarative tools, source-generated inputSchema, canonical Swepay envelope, RFC 9457 problem details, and CloudWatch EMF telemetry. Host it with Native.Mcp.NativeLambdaRouter or Native.Mcp.ApiGateway.</Description>
     <PackageTags>mcp;model-context-protocol;json-rpc;native-aot;serverless;lambda;api-gateway</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -23,8 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="3.0.0" />
-    <PackageReference Include="Amazon.Lambda.Core" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
     <PackageReference Include="Native.FluentValidation" Version="1.0.1" />

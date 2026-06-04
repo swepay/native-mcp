@@ -57,7 +57,6 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<ILogger<McpJsonRpcDispatcher>>(NullLogger<McpJsonRpcDispatcher>.Instance);
 
         services.TryAddScoped<McpJsonRpcDispatcher>();
-        services.TryAddSingleton<McpLambdaHandler>();
 
         return services;
     }

@@ -1,8 +1,7 @@
 using Amazon.Lambda.APIGatewayEvents;
 using Microsoft.Extensions.DependencyInjection;
-using Native.Mcp.ApiGateway;
 
-namespace Native.Mcp;
+namespace Native.Mcp.ApiGateway;
 
 /// <summary>
 /// Entry point that bridges an API Gateway HTTP API v2 Lambda invocation to the MCP

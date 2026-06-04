@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Native.Mcp\Native.Mcp.csproj" />
+    <ProjectReference Include="..\..\src\Native.Mcp.ApiGateway\Native.Mcp.ApiGateway.csproj" />
+    <ProjectReference Include="..\..\src\Native.Mcp.NativeLambdaRouter\Native.Mcp.NativeLambdaRouter.csproj" />
     <ProjectReference Include="..\..\src\Native.Mcp.Testing\Native.Mcp.Testing.csproj" />
     <ProjectReference Include="..\..\src\Native.Mcp.SourceGenerator\Native.Mcp.SourceGenerator.csproj"
                       OutputItemType="Analyzer"

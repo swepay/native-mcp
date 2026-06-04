@@ -36,6 +36,7 @@
   <!-- === Swepay libs cross-reference === -->
   <ItemGroup>
     <PackageVersion Include="Native.FluentValidation" Version="1.0.1" />
+    <PackageVersion Include="NativeLambdaRouter" Version="2.2.0" />
   </ItemGroup>
 
   <!-- === Test stack === -->

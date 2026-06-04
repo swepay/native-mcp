@@ -1,7 +1,8 @@
 # Native.Mcp.Sample
 
-A complete, Native-AOT MCP server Lambda built on `Native.Mcp`, fronted by API Gateway HTTP API
-with a JWT Authorizer. It exposes two tools:
+A complete, Native-AOT MCP server Lambda built on `Native.Mcp` and **hosted inside
+NativeLambdaRouter** (`Native.Mcp.NativeLambdaRouter`) — the recommended Swepay pattern — fronted
+by API Gateway HTTP API with a JWT Authorizer. It exposes two tools:
 
 - `ping` — returns `ok` (and the authenticated subject, if present).
 - `echo` — echoes a message; requires the `sample:echo` scope (defense in depth).
@@ -42,6 +43,7 @@ Gateway JWT Authorizer before the Lambda runs).
 ## How it's wired
 
 See [`Program.cs`](Program.cs): `AddNativeMcpServer` + `AddDiscoveredTools(SampleJsonContext.Default)`
-+ `AddNativeMcpTelemetry`, then `McpLambdaHandler.HandleAsync` is the Lambda entry point with a
-source-generated serializer. [`SampleJsonContext`](SampleJsonContext.cs) covers both the Lambda
-event types and the tool input/output types.
++ `AddNativeMcpTelemetry`, then a `McpRoutedApiGatewayFunction` (from
+`Native.Mcp.NativeLambdaRouter`) is the Lambda entry point — the router maps `POST /mcp` to the MCP
+dispatcher. [`SampleJsonContext`](SampleJsonContext.cs) covers both the Lambda event types and the
+tool input/output types. See [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) for the layering.

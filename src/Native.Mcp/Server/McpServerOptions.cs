@@ -164,6 +164,8 @@ public sealed class McpServerOptions
 /// <param name="Lifetime">The DI lifetime for the tool.</param>
 /// <param name="Descriptor">The runtime descriptor.</param>
 internal sealed record McpToolRegistration(
-    [property: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type ToolType,
+    [property: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+    [param: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+    Type ToolType,
     ServiceLifetime Lifetime,
     McpToolDescriptor Descriptor);

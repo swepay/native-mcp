@@ -77,7 +77,7 @@ public sealed record SwepayProblemDetails(
     /// </summary>
     /// <param name="type">The problem-type URI.</param>
     /// <returns>A machine-readable code such as <c>VALIDATION_FAILED</c>.</returns>
-    internal static string DeriveCode(string type)
+    public static string DeriveCode(string type)
     {
         var lastSegment = type;
         var slash = type.LastIndexOf('/');

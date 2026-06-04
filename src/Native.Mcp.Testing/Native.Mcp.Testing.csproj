@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
+    <!-- Test infrastructure: intentionally reflection-based, exempt from AOT/trim analysis. -->
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <IsAotCompatible>false</IsAotCompatible>
+
     <!-- Package metadata -->
     <PackageId>Native.Mcp.Testing</PackageId>
     <Version>1.0.0</Version>

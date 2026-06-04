@@ -8,6 +8,11 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
 
+    <!-- Analyzer/source-generator package: ships the generator under analyzers/dotnet/cs with no
+         lib/ (IncludeBuildOutput=false). NU5128 (no lib for the declared TFM) is expected for
+         analyzer packages and suppressed; the package still carries content (the analyzer dll). -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+
     <!-- Trim analyzer is only meaningful on the modern TFMs; disable on netstandard2.0. -->
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <IsTrimmable>false</IsTrimmable>
@@ -33,7 +38,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
 </Project>

@@ -36,9 +36,10 @@ jobs:
           fail_ci_if_error: false
 
       - name: Pack NuGet packages
+        # Native.Mcp.SourceGenerator is bundled inside the Native.Mcp package
+        # (analyzers/dotnet/cs), so it is not published as a standalone package.
         run: |
           dotnet pack src/Native.Mcp/Native.Mcp.csproj --no-build --configuration Release --output ./nupkg
-          dotnet pack src/Native.Mcp.SourceGenerator/Native.Mcp.SourceGenerator.csproj --no-build --configuration Release --output ./nupkg
           dotnet pack src/Native.Mcp.Testing/Native.Mcp.Testing.csproj --no-build --configuration Release --output ./nupkg
 
       - name: Upload NuGet package artifact

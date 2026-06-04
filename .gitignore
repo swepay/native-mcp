@@ -40,3 +40,7 @@ samconfig.toml
 
 # Verify received snapshots
 *.received.*
+
+# Local build/test artifacts
+nupkg/
+TestResults/

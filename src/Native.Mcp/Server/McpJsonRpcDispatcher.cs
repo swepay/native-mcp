@@ -233,7 +233,7 @@ public sealed class McpJsonRpcDispatcher
                 correlationId);
 
             _metrics.RecordToolCall(toolName, success: false, DurationMs(startedAt));
-            var problem = McpProblems.InternalError(requestId);
+            var problem = McpErrorMapper.MapException(ex, requestId);
             return ToolErrorEnvelope(request.Id, problem, context, startedAt);
         }
 

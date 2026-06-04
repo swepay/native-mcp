@@ -58,6 +58,7 @@ public sealed class McpServerOptions
             inputType: typeof(TInput),
             outputType: typeof(TOutput),
             deserializeInput: element => DeserializeInput(element, inputTypeInfo),
+            validateInput: static (serviceProvider, input) => ValidateInput<TInput>(serviceProvider, input),
             invoker: (serviceProvider, input, context, cancellationToken) =>
                 InvokeAsync<TTool, TInput, TOutput>(serviceProvider, input, context, outputTypeInfo, cancellationToken));
 
@@ -100,6 +101,32 @@ public sealed class McpServerOptions
     {
         var value = element.Deserialize(typeInfo);
         return value ?? throw new JsonException("Tool arguments deserialized to null.");
+    }
+
+    private static IReadOnlyList<McpValidationFailure> ValidateInput<TInput>(
+        IServiceProvider serviceProvider,
+        object input)
+        where TInput : class
+    {
+        var validator = serviceProvider.GetService<Native.FluentValidation.Abstractions.INativeValidator<TInput>>();
+        if (validator is null)
+        {
+            return Array.Empty<McpValidationFailure>();
+        }
+
+        var result = validator.Validate((TInput)input);
+        if (result.IsValid)
+        {
+            return Array.Empty<McpValidationFailure>();
+        }
+
+        var failures = new List<McpValidationFailure>(result.Errors.Count);
+        foreach (var error in result.Errors)
+        {
+            failures.Add(new McpValidationFailure(error.PropertyName, error.ErrorMessage));
+        }
+
+        return failures;
     }
 
     private static async Task<McpToolInvocationResult> InvokeAsync<TTool, TInput, TOutput>(

@@ -16,6 +16,7 @@ public sealed class McpToolDescriptor
     /// <param name="inputType">The tool input type.</param>
     /// <param name="outputType">The tool output type.</param>
     /// <param name="deserializeInput">Deserializes the raw arguments JSON into the input type.</param>
+    /// <param name="validateInput">Resolves a validator for the input type (if any) and validates.</param>
     /// <param name="invoker">Resolves the tool and executes it, returning the serialized envelope payload.</param>
     public McpToolDescriptor(
         string name,
@@ -25,6 +26,7 @@ public sealed class McpToolDescriptor
         Type inputType,
         Type outputType,
         Func<System.Text.Json.JsonElement, object> deserializeInput,
+        Func<IServiceProvider, object, IReadOnlyList<McpValidationFailure>> validateInput,
         McpToolInvoker invoker)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -34,6 +36,7 @@ public sealed class McpToolDescriptor
         InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
         OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
         DeserializeInput = deserializeInput ?? throw new ArgumentNullException(nameof(deserializeInput));
+        ValidateInput = validateInput ?? throw new ArgumentNullException(nameof(validateInput));
         Invoker = invoker ?? throw new ArgumentNullException(nameof(invoker));
     }
 
@@ -62,11 +65,23 @@ public sealed class McpToolDescriptor
     public Func<System.Text.Json.JsonElement, object> DeserializeInput { get; }
 
     /// <summary>
+    /// Resolves an <c>INativeValidator&lt;TInput&gt;</c> from the service provider (if one is
+    /// registered) and validates the input. Returns an empty list when valid or when no
+    /// validator is registered. Captured generically at registration, so it needs no reflection.
+    /// </summary>
+    public Func<IServiceProvider, object, IReadOnlyList<McpValidationFailure>> ValidateInput { get; }
+
+    /// <summary>
     /// Resolves the tool from the service provider and executes it. Returns the boxed
     /// <see cref="McpToolInvocationResult"/> describing success/failure.
     /// </summary>
     public McpToolInvoker Invoker { get; }
 }
+
+/// <summary>A single input validation failure, normalized away from any validator library.</summary>
+/// <param name="PropertyName">The offending property name.</param>
+/// <param name="Message">A human-readable, end-user-safe message.</param>
+public sealed record McpValidationFailure(string PropertyName, string Message);
 
 /// <summary>
 /// Strongly-typed tool invocation delegate. Captures the tool's input/output types at

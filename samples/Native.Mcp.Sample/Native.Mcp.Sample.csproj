@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+
+    <!-- Native AOT publish target for AWS Lambda (provided.al2023 / dotnet10). -->
+    <PublishAot>true</PublishAot>
+    <StripSymbols>true</StripSymbols>
+    <AssemblyName>bootstrap</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.Core" Version="3.1.0" />
+    <PackageReference Include="Amazon.Lambda.RuntimeSupport" Version="2.1.1" />
+    <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="3.0.0" />
+    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Native.Mcp\Native.Mcp.csproj" />
+    <ProjectReference Include="..\..\src\Native.Mcp.SourceGenerator\Native.Mcp.SourceGenerator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

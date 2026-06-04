@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <IsTrimmable>true</IsTrimmable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Package metadata -->
+    <PackageId>Native.Mcp</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Swepay</Authors>
+    <Description>Model Context Protocol (MCP) server runtime for .NET 10 Native AOT Lambdas behind API Gateway HTTP API with a JWT Authorizer. JSON-RPC 2.0 routing, declarative tools, canonical Swepay envelope, RFC 9457 problem details, and CloudWatch EMF telemetry.</Description>
+    <PackageTags>mcp;model-context-protocol;json-rpc;native-aot;serverless;lambda;api-gateway</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>native-mcp-c.png</PackageIcon>
+    <RepositoryUrl>https://github.com/swepay/native-mcp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="3.0.0" />
+    <PackageReference Include="Amazon.Lambda.Core" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
+    <PackageReference Include="Native.FluentValidation" Version="1.0.1" />
+  </ItemGroup>
+
+  <!-- Bundle the source generator so consumers get inputSchema generation automatically. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Native.Mcp.SourceGenerator\Native.Mcp.SourceGenerator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\native-mcp-c.png" Pack="true" PackagePath="\" />
+    <!-- Pack the generator assembly into the analyzers path of this package. -->
+    <None Include="..\Native.Mcp.SourceGenerator\bin\$(Configuration)\netstandard2.0\Native.Mcp.SourceGenerator.dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs"
+          Visible="false"
+          Condition="Exists('..\Native.Mcp.SourceGenerator\bin\$(Configuration)\netstandard2.0\Native.Mcp.SourceGenerator.dll')" />
+  </ItemGroup>
+
+</Project>

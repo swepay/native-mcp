@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/01 - Library/">
+    <Project Path="src/Native.Mcp/Native.Mcp.csproj" />
+    <Project Path="src/Native.Mcp.SourceGenerator/Native.Mcp.SourceGenerator.csproj" />
+    <Project Path="src/Native.Mcp.Testing/Native.Mcp.Testing.csproj" />
+  </Folder>
+  <Folder Name="/50 - Samples/">
+    <Project Path="samples/Native.Mcp.Sample/Native.Mcp.Sample.csproj" />
+  </Folder>
+  <Folder Name="/99 - Tests/">
+    <Project Path="tests/Native.Mcp.Tests/Native.Mcp.Tests.csproj" />
+    <Project Path="tests/Native.Mcp.SourceGenerator.Tests/Native.Mcp.SourceGenerator.Tests.csproj" />
+  </Folder>
+</Solution>

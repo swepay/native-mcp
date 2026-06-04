@@ -27,4 +27,5 @@
 ## Versioning
 
 SemVer. Breaking changes require a major bump and a CHANGELOG note. Releases are tagged
-`Native.Mcp-vX.Y.Z`.
+`vX.Y.Z` (e.g. `v1.0.0`), which triggers the NuGet publish workflow; the package version is
+taken from the tag.

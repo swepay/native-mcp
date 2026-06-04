@@ -26,6 +26,7 @@
     <PackageTags>mcp;source-generator;roslyn;json-schema;native-aot</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>native-mcp-c.png</PackageIcon>
     <RepositoryUrl>https://github.com/swepay/native-mcp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <DevelopmentDependency>true</DevelopmentDependency>
@@ -38,6 +39,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\native-mcp-c.png" Pack="true" PackagePath="\" />
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 

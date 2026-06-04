@@ -18,6 +18,7 @@
     <PackageTags>mcp;testing;xunit;fluentassertions</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>native-mcp-c.png</PackageIcon>
     <RepositoryUrl>https://github.com/swepay/native-mcp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
@@ -33,6 +34,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\native-mcp-c.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

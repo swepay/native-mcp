@@ -1,6 +1,7 @@
 using Amazon.Lambda.APIGatewayEvents;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Native.Mcp.ApiGateway;
 using Native.Mcp.Telemetry;
 using Native.Mcp.Tests.Fixtures;
 
@@ -24,6 +25,7 @@ public sealed class DiAndHandlerTests
             services.AddNativeMcpTelemetry();
         }
 
+        services.AddNativeMcpApiGatewayHandler();
         return services.BuildServiceProvider();
     }
 

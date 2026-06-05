@@ -1,31 +1,43 @@
 # Native.Mcp
 
-**Model Context Protocol (MCP) server runtime for .NET 10 Native AOT Lambdas.**
+**Transport-agnostic Model Context Protocol (MCP) server runtime for .NET 10 Native AOT.**
 
-`Native.Mcp` lets a Swepay Lambda expose an MCP server over **API Gateway HTTP API** with a
-native **JWT Authorizer**. It handles JSON-RPC 2.0 routing (`initialize`, `tools/list`,
+`Native.Mcp` is the protocol core: JSON-RPC 2.0 routing (`initialize`, `tools/list`,
 `tools/call`), declarative tool registration, source-generated `inputSchema`, input validation
 via `Native.FluentValidation`, the canonical Swepay envelope + RFC 9457 problem details, and
-CloudWatch EMF telemetry — all reflection-free and AOT-clean.
+CloudWatch EMF telemetry — all reflection-free and AOT-clean. It has **no Lambda/HTTP
+dependency**; you choose a hosting package for the transport.
 
 > **Naming.** `Native.Mcp` is the reusable library. Services that *consume* it follow
 > `Swepay.Mcp.{Product}.{Purpose}` (e.g. `Swepay.Mcp.NativeGuard.TrialProvisioner`) and live
 > in their own repos.
 
+## Hosting packages (pick one)
+
+| Package | Use it when |
+|---|---|
+| **[`Native.Mcp.NativeLambdaRouter`](https://www.nuget.org/packages/Native.Mcp.NativeLambdaRouter)** | **Recommended.** Host MCP inside NativeLambdaRouter (`POST /mcp`), reusing the shared Swepay routing/edge stack. |
+| **[`Native.Mcp.ApiGateway`](https://www.nuget.org/packages/Native.Mcp.ApiGateway)** | Front MCP directly behind API Gateway HTTP API v2, without the router. |
+
+You can also drive the dispatcher from any transport via
+`McpJsonRpcDispatcher.DispatchAsync(string? body, McpRequestContext)`.
+
 ## What it is / isn't
 
-- **Transport:** Streamable HTTP only (API Gateway HTTP API v2). No stdio.
+- **Transport:** Streamable HTTP via a hosting package. No stdio.
 - **Auth:** the JWT is validated by the API Gateway JWT Authorizer *before* the Lambda runs.
-  This library does **not** verify signatures/exp/iss/aud — it only *extracts* claims.
+  This library does **not** verify signatures/exp/iss/aud — it only *extracts* claims; per-tool
+  authorization is done in the tools (`McpExecutionContext.HasScope`).
 - **v0 scope:** `tools` only (no `resources`/`prompts`), no outbound notifications/streaming.
 
 ## Install
 
 ```
 dotnet add package Native.Mcp
+dotnet add package Native.Mcp.NativeLambdaRouter   # or Native.Mcp.ApiGateway
 ```
 
-The package bundles `Native.Mcp.SourceGenerator` automatically, so `inputSchema` generation and
+`Native.Mcp` bundles `Native.Mcp.SourceGenerator` automatically, so `inputSchema` generation and
 the `AddDiscoveredTools` helper are available with no extra reference.
 
 ## Quickstart
@@ -98,14 +110,21 @@ services.AddNativeMcpServer(options =>
 services.AddNativeMcpTelemetry();           // CloudWatch EMF + structured logs
 
 await using var provider = services.BuildServiceProvider();
-var mcp = provider.GetRequiredService<McpLambdaHandler>();
 
+// Recommended: host inside NativeLambdaRouter (package: Native.Mcp.NativeLambdaRouter).
+var function = new McpRoutedApiGatewayFunction(provider);
 var serializer = new SourceGeneratorLambdaJsonSerializer<AppJsonContext>();
-var handler = (APIGatewayHttpApiV2ProxyRequest req, ILambdaContext _) => mcp.HandleAsync(req);
+var handler = (APIGatewayHttpApiV2ProxyRequest req, ILambdaContext ctx) => function.FunctionHandler(req, ctx);
 await LambdaBootstrapBuilder.Create(handler, serializer).Build().RunAsync();
+
+// Alternative without the router (package: Native.Mcp.ApiGateway):
+//   services.AddNativeMcpApiGatewayHandler();
+//   var mcp = provider.GetRequiredService<McpLambdaHandler>();
+//   var handler = (APIGatewayHttpApiV2ProxyRequest req, ILambdaContext _) => mcp.HandleAsync(req);
 ```
 
-See [`samples/Native.Mcp.Sample`](../../samples/Native.Mcp.Sample) for a complete AOT Lambda.
+See [`samples/Native.Mcp.Sample`](../../samples/Native.Mcp.Sample) for a complete AOT Lambda
+(hosted via NativeLambdaRouter).
 
 ## Response shape
 

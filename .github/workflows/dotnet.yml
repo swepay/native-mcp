@@ -40,6 +40,8 @@ jobs:
         # (analyzers/dotnet/cs), so it is not published as a standalone package.
         run: |
           dotnet pack src/Native.Mcp/Native.Mcp.csproj --no-build --configuration Release --output ./nupkg
+          dotnet pack src/Native.Mcp.ApiGateway/Native.Mcp.ApiGateway.csproj --no-build --configuration Release --output ./nupkg
+          dotnet pack src/Native.Mcp.NativeLambdaRouter/Native.Mcp.NativeLambdaRouter.csproj --no-build --configuration Release --output ./nupkg
           dotnet pack src/Native.Mcp.Testing/Native.Mcp.Testing.csproj --no-build --configuration Release --output ./nupkg
 
       - name: Upload NuGet package artifact
@@ -74,6 +76,8 @@ jobs:
         # Native.Mcp.SourceGenerator ships bundled inside Native.Mcp (analyzers/dotnet/cs).
         run: |
           dotnet pack src/Native.Mcp/Native.Mcp.csproj --configuration Release --no-build -p:Version=${{ steps.get_version.outputs.VERSION }} --output ./nupkg
+          dotnet pack src/Native.Mcp.ApiGateway/Native.Mcp.ApiGateway.csproj --configuration Release --no-build -p:Version=${{ steps.get_version.outputs.VERSION }} --output ./nupkg
+          dotnet pack src/Native.Mcp.NativeLambdaRouter/Native.Mcp.NativeLambdaRouter.csproj --configuration Release --no-build -p:Version=${{ steps.get_version.outputs.VERSION }} --output ./nupkg
           dotnet pack src/Native.Mcp.Testing/Native.Mcp.Testing.csproj --configuration Release --no-build -p:Version=${{ steps.get_version.outputs.VERSION }} --output ./nupkg
 
       - name: Publish to NuGet.org

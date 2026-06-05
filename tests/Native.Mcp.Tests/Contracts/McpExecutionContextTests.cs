@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 
 namespace Native.Mcp.Tests.Contracts;
 
@@ -17,9 +17,9 @@ public sealed class McpExecutionContextTests
     {
         var ctx = Build(new Dictionary<string, string> { ["scope"] = "a b c" });
 
-        ctx.Scopes.Should().Equal("a", "b", "c");
-        ctx.HasScope("b").Should().BeTrue();
-        ctx.HasScope("d").Should().BeFalse();
+        ctx.Scopes.ShouldBe(new[] { "a", "b", "c" });
+        ctx.HasScope("b").ShouldBeTrue();
+        ctx.HasScope("d").ShouldBeFalse();
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public sealed class McpExecutionContextTests
     {
         var ctx = Build(new Dictionary<string, string> { ["scp"] = "read write" });
 
-        ctx.Scopes.Should().Equal("read", "write");
+        ctx.Scopes.ShouldBe(new[] { "read", "write" });
     }
 
     [Fact]
@@ -35,8 +35,8 @@ public sealed class McpExecutionContextTests
     {
         var ctx = Build(new Dictionary<string, string> { ["sub"] = "user-1", ["aud"] = "api" });
 
-        ctx.Subject.Should().Be("user-1");
-        ctx.Audience.Should().Be("api");
+        ctx.Subject.ShouldBe("user-1");
+        ctx.Audience.ShouldBe("api");
     }
 
     [Fact]
@@ -44,9 +44,9 @@ public sealed class McpExecutionContextTests
     {
         var ctx = Build(new Dictionary<string, string>());
 
-        ctx.Scopes.Should().BeEmpty();
-        ctx.Subject.Should().BeEmpty();
-        ctx.Audience.Should().BeEmpty();
-        ctx.HasScope("x").Should().BeFalse();
+        ctx.Scopes.ShouldBeEmpty();
+        ctx.Subject.ShouldBeEmpty();
+        ctx.Audience.ShouldBeEmpty();
+        ctx.HasScope("x").ShouldBeFalse();
     }
 }

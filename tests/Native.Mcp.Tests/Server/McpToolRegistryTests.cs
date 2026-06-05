@@ -1,5 +1,5 @@
 using System.Text.Json;
-using FluentAssertions;
+using Shouldly;
 
 namespace Native.Mcp.Tests.Server;
 
@@ -21,7 +21,7 @@ public sealed class McpToolRegistryTests
     {
         var registry = new McpToolRegistry([Descriptor("a"), Descriptor("b"), Descriptor("c")]);
 
-        registry.ListAll().Select(d => d.Name).Should().Equal("a", "b", "c");
+        registry.ListAll().Select(d => d.Name).ShouldBe(new[] { "a", "b", "c" });
     }
 
     [Fact]
@@ -29,8 +29,8 @@ public sealed class McpToolRegistryTests
     {
         var registry = new McpToolRegistry([Descriptor("ping")]);
 
-        registry.TryGetTool("ping", out var descriptor).Should().BeTrue();
-        descriptor!.Name.Should().Be("ping");
+        registry.TryGetTool("ping", out var descriptor).ShouldBeTrue();
+        descriptor!.Name.ShouldBe("ping");
     }
 
     [Fact]
@@ -38,8 +38,8 @@ public sealed class McpToolRegistryTests
     {
         var registry = new McpToolRegistry([Descriptor("ping")]);
 
-        registry.TryGetTool("nope", out var descriptor).Should().BeFalse();
-        descriptor.Should().BeNull();
+        registry.TryGetTool("nope", out var descriptor).ShouldBeFalse();
+        descriptor.ShouldBeNull();
     }
 
     [Fact]
@@ -47,6 +47,6 @@ public sealed class McpToolRegistryTests
     {
         var act = () => new McpToolRegistry([Descriptor("dup"), Descriptor("dup")]);
 
-        act.Should().Throw<InvalidOperationException>().WithMessage("*already registered*");
+        Should.Throw<InvalidOperationException>(act).Message.ShouldContain("already registered");
     }
 }

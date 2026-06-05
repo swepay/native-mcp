@@ -1,6 +1,6 @@
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
-using FluentAssertions;
+using Shouldly;
 using Microsoft.Extensions.DependencyInjection;
 using NativeLambdaRouter;
 using NSubstitute;
@@ -58,10 +58,10 @@ public sealed class BridgeTests
 
         var ctx = McpRouteContextMapper.ToRequestContext(routeContext);
 
-        ctx.RawJwt.Should().Be("router-jwt");
-        ctx.CorrelationId.Should().Be("c-1");
-        ctx.IdempotencyKey.Should().Be("i-1");
-        ctx.Claims["sub"].Should().Be("svc");
+        ctx.RawJwt.ShouldBe("router-jwt");
+        ctx.CorrelationId.ShouldBe("c-1");
+        ctx.IdempotencyKey.ShouldBe("i-1");
+        ctx.Claims["sub"].ShouldBe("svc");
     }
 
     [Fact]
@@ -75,8 +75,9 @@ public sealed class BridgeTests
 
         var response = await function.FunctionHandler(request, Substitute.For<ILambdaContext>());
 
-        response.StatusCode.Should().Be(200);
-        response.Body.Should().Contain("ok").And.Contain("router-corr-1");
+        response.StatusCode.ShouldBe(200);
+        response.Body.ShouldContain("ok");
+        response.Body.ShouldContain("router-corr-1");
     }
 
     [Fact]
@@ -89,8 +90,9 @@ public sealed class BridgeTests
 
         var response = await function.FunctionHandler(request, Substitute.For<ILambdaContext>());
 
-        response.StatusCode.Should().Be(200);
-        response.Body.Should().Contain("router-mcp").And.Contain("protocolVersion");
+        response.StatusCode.ShouldBe(200);
+        response.Body.ShouldContain("router-mcp");
+        response.Body.ShouldContain("protocolVersion");
     }
 
     [Fact]
@@ -102,7 +104,7 @@ public sealed class BridgeTests
         var response = await function.FunctionHandler(
             Request("/not-mcp", "POST", "{}"), Substitute.For<ILambdaContext>());
 
-        response.StatusCode.Should().Be(404);
+        response.StatusCode.ShouldBe(404);
     }
 
     [Fact]
@@ -114,7 +116,7 @@ public sealed class BridgeTests
         var response = await function.FunctionHandler(
             Request("/health", "GET", null), Substitute.For<ILambdaContext>());
 
-        response.StatusCode.Should().Be(200);
-        response.Body.Should().Contain("healthy");
+        response.StatusCode.ShouldBe(200);
+        response.Body.ShouldContain("healthy");
     }
 }

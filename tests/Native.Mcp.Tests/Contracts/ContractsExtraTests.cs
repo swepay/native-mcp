@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using Native.Mcp.Protocol;
 using Native.Mcp.Telemetry;
 using Native.Mcp.Validation;
@@ -29,10 +29,10 @@ public sealed class ContractsExtraTests
             Metadata = metadata,
         };
 
-        envelope.Success.Should().BeTrue();
-        envelope.Data!.Status.Should().Be("ok");
-        envelope.Metadata.ServerName.Should().Be("srv");
-        envelope.Error.Should().BeNull();
+        envelope.Success.ShouldBeTrue();
+        envelope.Data!.Status.ShouldBe("ok");
+        envelope.Metadata.ServerName.ShouldBe("srv");
+        envelope.Error.ShouldBeNull();
     }
 
     [Fact]
@@ -41,8 +41,8 @@ public sealed class ContractsExtraTests
         var success = () => McpToolResult<PingOutput>.Success(null!);
         var failure = () => McpToolResult<PingOutput>.Failure(null!);
 
-        success.Should().Throw<ArgumentNullException>();
-        failure.Should().Throw<ArgumentNullException>();
+        Should.Throw<ArgumentNullException>(success);
+        Should.Throw<ArgumentNullException>(failure);
     }
 
     [Fact]
@@ -50,8 +50,8 @@ public sealed class ContractsExtraTests
     {
         var content = McpContent.FromText("hello");
 
-        content.Type.Should().Be("text");
-        content.Text.Should().Be("hello");
+        content.Type.ShouldBe("text");
+        content.Text.ShouldBe("hello");
     }
 
     [Fact]
@@ -60,16 +60,16 @@ public sealed class ContractsExtraTests
         var started = DateTimeOffset.UtcNow;
         var ctx = Context(started);
 
-        ctx.IdempotencyKey.Should().Be("idem-1");
-        ctx.StartedAt.Should().Be(started);
-        ctx.RawJwt.Should().Be("jwt-value");
+        ctx.IdempotencyKey.ShouldBe("idem-1");
+        ctx.StartedAt.ShouldBe(started);
+        ctx.RawJwt.ShouldBe("jwt-value");
     }
 
     [Fact]
     public void SwepayProblemDetails_Create_GuardsAgainstEmptyType()
     {
         var act = () => SwepayProblemDetails.Create("", "Title", 400, "detail");
-        act.Should().Throw<ArgumentException>();
+        Should.Throw<ArgumentException>(act);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public sealed class ContractsExtraTests
         var problem = PassThroughInputValidator.Instance.Validate(
             Descriptor(), new object(), EmptyProvider.Instance, Context(DateTimeOffset.UtcNow));
 
-        problem.Should().BeNull();
+        problem.ShouldBeNull();
     }
 
     private static McpToolDescriptor Descriptor() => new(

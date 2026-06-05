@@ -12,7 +12,7 @@ plus two hosting packages, a source generator and test helpers.
 | [`src/Native.Mcp.NativeLambdaRouter`](src/Native.Mcp.NativeLambdaRouter) | `Native.Mcp.NativeLambdaRouter` | **Hosting (recommended):** runs MCP inside NativeLambdaRouter (`POST /mcp`), reusing the shared Swepay routing/edge stack. |
 | [`src/Native.Mcp.ApiGateway`](src/Native.Mcp.ApiGateway) | `Native.Mcp.ApiGateway` | **Hosting (router-free):** API Gateway HTTP API v2 adapter + Lambda handler. |
 | [`src/Native.Mcp.SourceGenerator`](src/Native.Mcp.SourceGenerator) | `Native.Mcp.SourceGenerator` | Roslyn generator: `inputSchema` (JSON Schema 2020-12) + `AddDiscoveredTools`. Bundled into `Native.Mcp`. |
-| [`src/Native.Mcp.Testing`](src/Native.Mcp.Testing) | `Native.Mcp.Testing` | In-memory host, JSON-RPC client, builders, FluentAssertions extensions. |
+| [`src/Native.Mcp.Testing`](src/Native.Mcp.Testing) | `Native.Mcp.Testing` | In-memory host, JSON-RPC client, builders, Shouldly extensions. |
 
 A runnable AOT example (hosted via NativeLambdaRouter) lives in
 [`samples/Native.Mcp.Sample`](samples/Native.Mcp.Sample). The architecture and the v1 → v2 changes
@@ -38,7 +38,7 @@ dotnet test   -c Release --settings coverlet.runsettings
 - **Coverage gate:** line ≥ 85% on `Native.Mcp` and `Native.Mcp.SourceGenerator` (branch target
   ≥ 70%); `Native.Mcp.Testing` is exempt.
 - **Stack:** `System.Text.Json` source-gen, `NativeMediator`, `Native.FluentValidation`, xUnit +
-  NSubstitute + FluentAssertions.
+  NSubstitute + Shouldly.
 
 ## Auth model (locked)
 

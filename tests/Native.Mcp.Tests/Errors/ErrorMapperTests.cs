@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 
 namespace Native.Mcp.Tests.Errors;
 
@@ -9,10 +9,10 @@ public sealed class ErrorMapperTests
     {
         var problem = McpErrorMapper.MapException(new InvalidOperationException("secret-detail"), "req-7");
 
-        problem.Type.Should().Be(ProblemTypes.InternalError);
-        problem.Status.Should().Be(500);
-        problem.RequestId.Should().Be("req-7");
-        problem.Detail.Should().NotContain("secret-detail");
+        problem.Type.ShouldBe(ProblemTypes.InternalError);
+        problem.Status.ShouldBe(500);
+        problem.RequestId.ShouldBe("req-7");
+        problem.Detail.ShouldNotContain("secret-detail");
     }
 
     [Fact]
@@ -20,8 +20,8 @@ public sealed class ErrorMapperTests
     {
         var problem = McpProblems.Forbidden("Required scope: x", "req-1");
 
-        problem.Type.Should().Be(ProblemTypes.Forbidden);
-        problem.Status.Should().Be(403);
-        problem.Code.Should().Be("FORBIDDEN");
+        problem.Type.ShouldBe(ProblemTypes.Forbidden);
+        problem.Status.ShouldBe(403);
+        problem.Code.ShouldBe("FORBIDDEN");
     }
 }

@@ -1,7 +1,7 @@
 # Native.Mcp.Testing
 
 Test helpers for [`Native.Mcp`](https://github.com/swepay/native-mcp): an in-memory MCP host, a
-JSON-RPC test client (no HTTP/Lambda), fluent builders and FluentAssertions extensions.
+JSON-RPC test client (no HTTP/Lambda), fluent builders and Shouldly assertion helpers.
 
 This library is reflection-based on purpose and is **not** AOT-constrained — it is test
 infrastructure.
@@ -23,8 +23,8 @@ var response = await client.CallToolAsync("ping", new { }, new McpRequestOptions
     Scopes = ["sample:ping"],
 });
 
-response.Should().BeSuccessful();
-response.Envelope!.DataAs<PingOutput>()!.Status.Should().Be("ok");
+response.ShouldBeSuccessful();
+response.Envelope!.DataAs<PingOutput>()!.Status.ShouldBe("ok");
 ```
 
 ## Components
@@ -34,16 +34,17 @@ response.Envelope!.DataAs<PingOutput>()!.Status.Should().Be("ok");
 - **`McpTestClient`** — `InitializeAsync`, `ListToolsAsync`, `CallToolAsync`, `SendRawAsync`.
 - **Builders** — `McpExecutionContextBuilder` (for unit-testing a tool directly),
   `McpRequestBuilder`, `McpEnvelopeBuilder`.
-- **Assertions** — `result.Should().BeSuccess()/BeFailure().WithProblemType(...)` on
-  `McpToolResult<T>`; `response.Should().BeSuccessful()/BeError().WithProblemType(...)` and
-  `BeProtocolError(code)` on `McpToolCallResponse`.
+- **Assertions (Shouldly extensions)** — `result.ShouldBeSuccess()` /
+  `result.ShouldBeFailure().ShouldHaveProblemType(...)` on `McpToolResult<T>`;
+  `response.ShouldBeSuccessful()` / `response.ShouldBeError().ShouldHaveProblemType(...)` /
+  `response.ShouldBeProtocolError(code)` on `McpToolCallResponse`.
 
 ## Unit-testing a tool directly
 
 ```csharp
 var ctx = new McpExecutionContextBuilder().WithScope("sample:ping").Build();
 var result = await new PingTool().ExecuteAsync(new PingInput(), ctx, default);
-result.Should().BeSuccess();
+result.ShouldBeSuccess();
 ```
 
 ## License

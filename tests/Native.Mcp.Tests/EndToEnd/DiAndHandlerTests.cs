@@ -1,5 +1,5 @@
 using Amazon.Lambda.APIGatewayEvents;
-using FluentAssertions;
+using Shouldly;
 using Microsoft.Extensions.DependencyInjection;
 using Native.Mcp.ApiGateway;
 using Native.Mcp.Telemetry;
@@ -43,9 +43,10 @@ public sealed class DiAndHandlerTests
 
         var response = await handler.HandleAsync(request);
 
-        response.StatusCode.Should().Be(200);
-        response.Headers["content-type"].Should().Be("application/json");
-        response.Body.Should().Contain("ok").And.Contain("h-1");
+        response.StatusCode.ShouldBe(200);
+        response.Headers["content-type"].ShouldBe("application/json");
+        response.Body.ShouldContain("ok");
+        response.Body.ShouldContain("h-1");
     }
 
     [Fact]
@@ -61,8 +62,8 @@ public sealed class DiAndHandlerTests
 
         var response = await handler.HandleAsync(request);
 
-        response.StatusCode.Should().Be(202);
-        response.Body.Should().BeEmpty();
+        response.StatusCode.ShouldBe(202);
+        response.Body.ShouldBeEmpty();
     }
 
     [Fact]
@@ -70,8 +71,8 @@ public sealed class DiAndHandlerTests
     {
         using var provider = BuildProvider();
 
-        provider.GetRequiredService<IMcpMetrics>().Should().BeOfType<McpMetrics>();
-        provider.GetRequiredService<IMcpToolLogger>().Should().BeOfType<McpLogger>();
+        provider.GetRequiredService<IMcpMetrics>().ShouldBeOfType<McpMetrics>();
+        provider.GetRequiredService<IMcpToolLogger>().ShouldBeOfType<McpLogger>();
     }
 
     [Fact]
@@ -79,8 +80,8 @@ public sealed class DiAndHandlerTests
     {
         using var provider = BuildProvider(telemetry: false);
 
-        provider.GetRequiredService<IMcpMetrics>().Should().BeSameAs(NoOpMcpMetrics.Instance);
-        provider.GetRequiredService<IMcpToolLogger>().Should().BeSameAs(NoOpMcpToolLogger.Instance);
-        provider.GetRequiredService<IMcpTracer>().Should().BeSameAs(NoOpMcpTracer.Instance);
+        provider.GetRequiredService<IMcpMetrics>().ShouldBeSameAs(NoOpMcpMetrics.Instance);
+        provider.GetRequiredService<IMcpToolLogger>().ShouldBeSameAs(NoOpMcpToolLogger.Instance);
+        provider.GetRequiredService<IMcpTracer>().ShouldBeSameAs(NoOpMcpTracer.Instance);
     }
 }

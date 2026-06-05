@@ -1,5 +1,5 @@
 using System.Text.Json;
-using FluentAssertions;
+using Shouldly;
 using Microsoft.Extensions.DependencyInjection;
 using Native.FluentValidation.Abstractions;
 using Native.Mcp.Protocol;
@@ -31,7 +31,7 @@ public sealed class DispatcherEdgeTests
         await using var host = BuildHost();
         var raw = await host.CreateClient().SendRawAsync("""{"jsonrpc":"1.0","id":"1","method":"ping"}""");
 
-        Parse(raw.Body).Code.Should().Be(JsonRpcErrorCodes.InvalidRequest);
+        Parse(raw.Body).Code.ShouldBe(JsonRpcErrorCodes.InvalidRequest);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public sealed class DispatcherEdgeTests
         await using var host = BuildHost();
         var raw = await host.CreateClient().SendRawAsync("""{"jsonrpc":"2.0","id":"1"}""");
 
-        Parse(raw.Body).Code.Should().Be(JsonRpcErrorCodes.InvalidRequest);
+        Parse(raw.Body).Code.ShouldBe(JsonRpcErrorCodes.InvalidRequest);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class DispatcherEdgeTests
         await using var host = BuildHost();
         var raw = await host.CreateClient().SendRawAsync("""{"jsonrpc":"2.0","id":"1","method":"tools/call"}""");
 
-        Parse(raw.Body).Code.Should().Be(JsonRpcErrorCodes.InvalidParams);
+        Parse(raw.Body).Code.ShouldBe(JsonRpcErrorCodes.InvalidParams);
     }
 
     [Fact]
@@ -60,8 +60,8 @@ public sealed class DispatcherEdgeTests
             """{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"ping","arguments":{}}}""");
 
         var (_, root) = Parse(raw.Body);
-        root.GetProperty("id").GetInt32().Should().Be(5);
-        root.TryGetProperty("result", out _).Should().BeTrue();
+        root.GetProperty("id").GetInt32().ShouldBe(5);
+        root.TryGetProperty("result", out _).ShouldBeTrue();
     }
 
     [Fact]
@@ -71,8 +71,8 @@ public sealed class DispatcherEdgeTests
         var response = await host.CreateClient().SendRawAsync(
             """{"jsonrpc":"2.0","id":"1","method":"tools/call","params":{"name":"ping"}}""");
 
-        response.HttpStatusCode.Should().Be(200);
-        response.Body.Should().Contain("ok");
+        response.HttpStatusCode.ShouldBe(200);
+        response.Body.ShouldContain("ok");
     }
 
     [Fact]
@@ -83,8 +83,8 @@ public sealed class DispatcherEdgeTests
         var response = await host.CreateClient().SendRawAsync(
             """{"jsonrpc":"2.0","id":"1","method":"tools/call","params":{"name":"echo","arguments":{"message":123}}}""");
 
-        response.Body.Should().Contain(ProblemTypes.ValidationFailed);
+        response.Body.ShouldContain(ProblemTypes.ValidationFailed);
         var (_, root) = Parse(response.Body);
-        root.GetProperty("result").GetProperty("isError").GetBoolean().Should().BeTrue();
+        root.GetProperty("result").GetProperty("isError").GetBoolean().ShouldBeTrue();
     }
 }

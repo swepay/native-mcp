@@ -1,5 +1,5 @@
 using System.Text.Json;
-using FluentAssertions;
+using Shouldly;
 using Native.Mcp.Tests.Fixtures;
 
 namespace Native.Mcp.Tests.Protocol;
@@ -14,7 +14,7 @@ public sealed class GeneratedSchemaTests
     public void PingTool_InputSchema_IsValidObjectSchema()
     {
         using var doc = JsonDocument.Parse(PingTool.InputSchemaJson);
-        doc.RootElement.GetProperty("type").GetString().Should().Be("object");
+        doc.RootElement.GetProperty("type").GetString().ShouldBe("object");
     }
 
     [Fact]
@@ -23,13 +23,13 @@ public sealed class GeneratedSchemaTests
         using var doc = JsonDocument.Parse(EchoTool.InputSchemaJson);
         var root = doc.RootElement;
 
-        root.GetProperty("$schema").GetString().Should().Contain("2020-12");
-        root.GetProperty("required").EnumerateArray().Select(e => e.GetString()).Should().Contain("message");
+        root.GetProperty("$schema").GetString()!.ShouldContain("2020-12");
+        root.GetProperty("required").EnumerateArray().Select(e => e.GetString()).ShouldContain("message");
 
         var message = root.GetProperty("properties").GetProperty("message");
-        message.GetProperty("type").GetString().Should().Be("string");
-        message.GetProperty("description").GetString().Should().Be("The message to echo back.");
-        message.GetProperty("maxLength").GetInt32().Should().Be(100);
-        root.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
+        message.GetProperty("type").GetString().ShouldBe("string");
+        message.GetProperty("description").GetString().ShouldBe("The message to echo back.");
+        message.GetProperty("maxLength").GetInt32().ShouldBe(100);
+        root.GetProperty("additionalProperties").GetBoolean().ShouldBeFalse();
     }
 }

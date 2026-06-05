@@ -12,10 +12,10 @@
 
     <!-- Package metadata -->
     <PackageId>Native.Mcp.Testing</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Authors>Swepay</Authors>
-    <Description>Test helpers for Native.Mcp: in-memory MCP host, JSON-RPC test client, fluent builders, and FluentAssertions extensions for the canonical Swepay envelope.</Description>
-    <PackageTags>mcp;testing;xunit;fluentassertions</PackageTags>
+    <Description>Test helpers for Native.Mcp: in-memory MCP host, JSON-RPC test client, fluent builders, and Shouldly assertion helpers for the canonical Swepay envelope.</Description>
+    <PackageTags>mcp;testing;xunit;shouldly</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>native-mcp-c.png</PackageIcon>
@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
-    <PackageReference Include="FluentAssertions" Version="7.2.2" />
+    <PackageReference Include="Shouldly" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>

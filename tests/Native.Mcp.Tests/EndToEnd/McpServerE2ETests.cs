@@ -1,5 +1,5 @@
 using System.Text.Json;
-using FluentAssertions;
+using Shouldly;
 using Microsoft.Extensions.DependencyInjection;
 using Native.FluentValidation.Abstractions;
 using Native.Mcp.Testing;
@@ -16,6 +16,7 @@ public sealed class McpServerE2ETests
             .AddTool<PingTool>()
             .AddTool<EchoTool>()
             .AddTool<ScopedTool>()
+            .AddTool<RequireRoleTool>()
             .AddTool<FailingTool>()
             .ConfigureServices(s => s.AddSingleton<INativeValidator<EchoInput>, EchoInputValidator>());
 
@@ -31,11 +32,11 @@ public sealed class McpServerE2ETests
 
         var response = await client.InitializeAsync();
 
-        response.HttpStatusCode.Should().Be(200);
-        response.ProtocolError.Should().BeNull();
-        response.ProtocolVersion.Should().Be(Native.Mcp.Protocol.McpProtocol.Version);
-        response.ServerName.Should().Be("swepay-test-mcp");
-        response.ServerVersion.Should().Be("1.2.3");
+        response.HttpStatusCode.ShouldBe(200);
+        response.ProtocolError.ShouldBeNull();
+        response.ProtocolVersion.ShouldBe(Native.Mcp.Protocol.McpProtocol.Version);
+        response.ServerName.ShouldBe("swepay-test-mcp");
+        response.ServerVersion.ShouldBe("1.2.3");
     }
 
     [Fact]
@@ -46,9 +47,16 @@ public sealed class McpServerE2ETests
 
         var response = await client.ListToolsAsync();
 
-        response.Tools.Select(t => t.Name).Should().Contain(["ping", "echo", "scoped", "failing"]);
+        var toolNames = response.Tools.Select(t => t.Name).ToList();
+        toolNames.ShouldContain("ping");
+        toolNames.ShouldContain("echo");
+        toolNames.ShouldContain("scoped");
+        toolNames.ShouldContain("failing");
+
         var echo = response.Tools.Single(t => t.Name == "echo");
-        echo.InputSchema!.ToJsonString().Should().Contain("\"message\"").And.Contain("\"maxLength\"");
+        var echoSchema = echo.InputSchema!.ToJsonString();
+        echoSchema.ShouldContain("\"message\"");
+        echoSchema.ShouldContain("\"maxLength\"");
     }
 
     [Fact]
@@ -60,13 +68,13 @@ public sealed class McpServerE2ETests
         var response = await client.CallToolAsync("ping", new { }, new McpRequestOptions
         {
             CorrelationId = "corr-1",
-            Scopes = ["test:read"],
+            Roles = ["test-reader"],
         });
 
-        response.Should().BeSuccessful();
-        response.Envelope!.DataAs<PingOutput>()!.Status.Should().Be("ok");
-        response.Envelope.Metadata!.CorrelationId.Should().Be("corr-1");
-        response.Envelope.Metadata.ServerName.Should().Be("swepay-test-mcp");
+        response.ShouldBeSuccessful();
+        response.Envelope!.DataAs<PingOutput>()!.Status.ShouldBe("ok");
+        response.Envelope.Metadata!.CorrelationId.ShouldBe("corr-1");
+        response.Envelope.Metadata.ServerName.ShouldBe("swepay-test-mcp");
     }
 
     [Fact]
@@ -77,8 +85,8 @@ public sealed class McpServerE2ETests
 
         var response = await client.CallToolAsync("echo", new { message = "hello world" });
 
-        response.Should().BeSuccessful();
-        response.Envelope!.DataAs<EchoOutput>()!.Echo.Should().Be("hello world");
+        response.ShouldBeSuccessful();
+        response.Envelope!.DataAs<EchoOutput>()!.Echo.ShouldBe("hello world");
     }
 
     [Fact]
@@ -89,8 +97,8 @@ public sealed class McpServerE2ETests
 
         var response = await client.CallToolAsync("echo", new { message = "" });
 
-        response.Should().BeError().WithProblemType(ProblemTypes.ValidationFailed);
-        response.IsError.Should().BeTrue();
+        response.ShouldBeError().ShouldHaveProblemType(ProblemTypes.ValidationFailed);
+        response.IsError.ShouldBeTrue();
     }
 
     [Fact]
@@ -101,22 +109,49 @@ public sealed class McpServerE2ETests
 
         var response = await client.CallToolAsync("scoped", new { value = "x" });
 
-        response.Should().BeError().WithProblemType(ProblemTypes.Forbidden);
+        response.ShouldBeError().ShouldHaveProblemType(ProblemTypes.Forbidden);
     }
 
     [Fact]
-    public async Task ToolsCall_Scoped_WithScope_Succeeds()
+    public async Task ToolsCall_Scoped_WithRole_Succeeds()
     {
         await using var host = BuildHost();
         var client = host.CreateClient();
 
         var response = await client.CallToolAsync("scoped", new { value = "x" }, new McpRequestOptions
         {
-            Scopes = [ScopedTool.RequiredScope],
+            Roles = [ScopedTool.RequiredRole],
         });
 
-        response.Should().BeSuccessful();
-        response.Envelope!.DataAs<ScopedOutput>()!.Value.Should().Be("x");
+        response.ShouldBeSuccessful();
+        response.Envelope!.DataAs<ScopedOutput>()!.Value.ShouldBe("x");
+    }
+
+    [Fact]
+    public async Task ToolsCall_RequireRole_WithoutRole_ReturnsForbidden()
+    {
+        await using var host = BuildHost();
+        var client = host.CreateClient();
+
+        var response = await client.CallToolAsync("require_role", new { value = "x" });
+
+        response.ShouldBeError().ShouldHaveProblemType(ProblemTypes.Forbidden);
+        response.Envelope!.Error!.Detail.ShouldContain(RequireRoleTool.RequiredRole);
+    }
+
+    [Fact]
+    public async Task ToolsCall_RequireRole_WithRole_Succeeds()
+    {
+        await using var host = BuildHost();
+        var client = host.CreateClient();
+
+        var response = await client.CallToolAsync("require_role", new { value = "y" }, new McpRequestOptions
+        {
+            Roles = [RequireRoleTool.RequiredRole],
+        });
+
+        response.ShouldBeSuccessful();
+        response.Envelope!.DataAs<ScopedOutput>()!.Value.ShouldBe("y");
     }
 
     [Fact]
@@ -127,10 +162,10 @@ public sealed class McpServerE2ETests
 
         var response = await client.CallToolAsync("failing", new { note = "n" });
 
-        response.Should().BeError().WithProblemType(ProblemTypes.InternalError);
-        response.RawJson.Should().NotContain(FailingTool.SecretMessage);
-        response.RawJson.Should().NotContain("InvalidOperationException");
-        response.Envelope!.Error!.Detail.Should().NotContain(FailingTool.SecretMessage);
+        response.ShouldBeError().ShouldHaveProblemType(ProblemTypes.InternalError);
+        response.RawJson.ShouldNotContain(FailingTool.SecretMessage);
+        response.RawJson.ShouldNotContain("InvalidOperationException");
+        response.Envelope!.Error!.Detail.ShouldNotContain(FailingTool.SecretMessage);
     }
 
     [Fact]
@@ -141,7 +176,7 @@ public sealed class McpServerE2ETests
 
         var response = await client.CallToolAsync("does_not_exist", new { });
 
-        response.Should().BeProtocolError(Native.Mcp.Protocol.JsonRpcErrorCodes.InvalidParams);
+        response.ShouldBeProtocolError(Native.Mcp.Protocol.JsonRpcErrorCodes.InvalidParams);
     }
 
     [Fact]
@@ -153,8 +188,8 @@ public sealed class McpServerE2ETests
         var raw = await client.SendRawAsync(
             """{"jsonrpc":"2.0","id":"1","method":"resources/list"}""");
 
-        ErrorCode(raw.Body).Should().Be(Native.Mcp.Protocol.JsonRpcErrorCodes.MethodNotFound);
-        raw.HttpStatusCode.Should().Be(200);
+        ErrorCode(raw.Body).ShouldBe(Native.Mcp.Protocol.JsonRpcErrorCodes.MethodNotFound);
+        raw.HttpStatusCode.ShouldBe(200);
     }
 
     [Fact]
@@ -165,8 +200,8 @@ public sealed class McpServerE2ETests
 
         var raw = await client.SendRawAsync("{ this is not json ");
 
-        ErrorCode(raw.Body).Should().Be(Native.Mcp.Protocol.JsonRpcErrorCodes.ParseError);
-        raw.HttpStatusCode.Should().Be(200);
+        ErrorCode(raw.Body).ShouldBe(Native.Mcp.Protocol.JsonRpcErrorCodes.ParseError);
+        raw.HttpStatusCode.ShouldBe(200);
     }
 
     [Fact]
@@ -177,8 +212,8 @@ public sealed class McpServerE2ETests
 
         var raw = await client.SendRawAsync("""{"jsonrpc":"2.0","method":"notifications/initialized"}""");
 
-        raw.HttpStatusCode.Should().Be(202);
-        raw.Body.Should().BeEmpty();
+        raw.HttpStatusCode.ShouldBe(202);
+        raw.Body.ShouldBeEmpty();
     }
 
     [Fact]
@@ -194,8 +229,11 @@ public sealed class McpServerE2ETests
         await using var provider = services.BuildServiceProvider();
         var registry = provider.GetRequiredService<IMcpToolRegistry>();
 
-        registry.ListAll().Select(d => d.Name).Should()
-            .Contain(["ping", "echo", "scoped", "failing"]);
+        var names = registry.ListAll().Select(d => d.Name).ToList();
+        names.ShouldContain("ping");
+        names.ShouldContain("echo");
+        names.ShouldContain("scoped");
+        names.ShouldContain("failing");
     }
 
     private static int ErrorCode(string body)

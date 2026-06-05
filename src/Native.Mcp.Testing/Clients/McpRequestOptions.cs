@@ -12,8 +12,8 @@ public sealed class McpRequestOptions
     /// <summary>Idempotency key.</summary>
     public string? IdempotencyKey { get; set; }
 
-    /// <summary>Scopes to grant (rendered into the <c>scope</c> claim).</summary>
-    public IReadOnlyList<string>? Scopes { get; set; }
+    /// <summary>Roles to grant (rendered into the <c>roles</c> claim).</summary>
+    public IReadOnlyList<string>? Roles { get; set; }
 
     /// <summary>Additional raw JWT claims.</summary>
     public IReadOnlyDictionary<string, string>? Claims { get; set; }
@@ -35,9 +35,9 @@ public sealed class McpRequestOptions
             }
         }
 
-        if (Scopes is { Count: > 0 })
+        if (Roles is { Count: > 0 })
         {
-            claims["scope"] = string.Join(" ", Scopes);
+            claims["roles"] = string.Join(",", Roles);
         }
 
         return new McpRequestContext

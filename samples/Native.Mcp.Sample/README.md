@@ -5,7 +5,7 @@ NativeLambdaRouter** (`Native.Mcp.NativeLambdaRouter`) — the recommended Swepa
 by API Gateway HTTP API with a JWT Authorizer. It exposes two tools:
 
 - `ping` — returns `ok` (and the authenticated subject, if present).
-- `echo` — echoes a message; requires the `sample:echo` scope (defense in depth).
+- `echo` — echoes a message; requires the `sample-echo` role (defense in depth).
 
 ## Build (AOT)
 

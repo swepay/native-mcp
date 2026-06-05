@@ -16,17 +16,17 @@ public sealed record ScopedOutput
     public string? Value { get; init; }
 }
 
-/// <summary>A tool that enforces a scope as defense in depth (returns forbidden if missing).</summary>
+/// <summary>A tool that enforces a role as defense in depth (returns forbidden if missing).</summary>
 public sealed partial class ScopedTool : IMcpTool<ScopedInput, ScopedOutput>
 {
-    /// <summary>The scope required to call this tool.</summary>
-    public const string RequiredScope = "test:write";
+    /// <summary>The role required to call this tool.</summary>
+    public const string RequiredRole = "test-writer";
 
     /// <inheritdoc/>
     public static string Name => "scoped";
 
     /// <inheritdoc/>
-    public static string Description => "Requires the test:write scope. Returns the provided value.";
+    public static string Description => "Requires the test-writer role. Returns the provided value.";
 
     /// <inheritdoc/>
     public Task<McpToolResult<ScopedOutput>> ExecuteAsync(
@@ -34,10 +34,10 @@ public sealed partial class ScopedTool : IMcpTool<ScopedInput, ScopedOutput>
         McpExecutionContext context,
         CancellationToken cancellationToken)
     {
-        if (!context.HasScope(RequiredScope))
+        if (!context.HasRole(RequiredRole))
         {
             return Task.FromResult(McpToolResult<ScopedOutput>.Failure(
-                McpProblems.Forbidden($"Required scope: {RequiredScope}", context.RequestId)));
+                McpProblems.Forbidden($"Required role: {RequiredRole}", context.RequestId)));
         }
 
         return Task.FromResult(McpToolResult<ScopedOutput>.Success(new ScopedOutput { Value = input.Value }));

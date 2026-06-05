@@ -14,7 +14,7 @@
 - `dotnet test -c Release --settings coverlet.runsettings` must pass with line coverage ≥ 85% on
   `Native.Mcp` and `Native.Mcp.SourceGenerator` (branch target ≥ 70%).
 - Public types/members need XML doc comments.
-- New behavior needs tests (xUnit + NSubstitute + FluentAssertions; AAA, FIRST).
+- New behavior needs tests (xUnit + NSubstitute + Shouldly; AAA, FIRST).
 
 ## AOT rules
 

@@ -27,7 +27,7 @@ You can also drive the dispatcher from any transport via
 - **Transport:** Streamable HTTP via a hosting package. No stdio.
 - **Auth:** the JWT is validated by the API Gateway JWT Authorizer *before* the Lambda runs.
   This library does **not** verify signatures/exp/iss/aud — it only *extracts* claims; per-tool
-  authorization is done in the tools (`McpExecutionContext.HasScope`).
+  authorization is done in the tools (`McpExecutionContext.HasRole`).
 - **v0 scope:** `tools` only (no `resources`/`prompts`), no outbound notifications/streaming.
 
 ## Install
@@ -57,10 +57,10 @@ public sealed partial class PingTool : IMcpTool<PingInput, PingOutput>
     public Task<McpToolResult<PingOutput>> ExecuteAsync(
         PingInput input, McpExecutionContext context, CancellationToken cancellationToken)
     {
-        // Defense in depth: re-check a scope even though the Authorizer already gated the call.
-        if (!context.HasScope("sample:ping"))
+        // Defense in depth: re-check a role even though the Authorizer already gated the call.
+        if (!context.HasRole("sample-ping"))
             return Task.FromResult(McpToolResult<PingOutput>.Failure(
-                McpProblems.Forbidden("Required scope: sample:ping", context.RequestId)));
+                McpProblems.Forbidden("Required role: sample-ping", context.RequestId)));
 
         return Task.FromResult(McpToolResult<PingOutput>.Success(new PingOutput { Status = "ok" }));
     }
@@ -177,7 +177,7 @@ The envelope:
 | `INativeValidator<TInput>` failed | HTTP 200 | envelope `isError`, type `.../common/validation-failed` |
 | Tool returned `Failure(...)` | HTTP 200 | envelope `isError`, the tool's problem |
 | Tool threw | HTTP 200 | envelope `isError`, type [`.../common/internal-error`](https://errors.swepay.com.br/common/internal-error) — **no** `ex.Message`/stack trace (LGPD) |
-| Caller lacks required scope (in-tool) | HTTP 200 | envelope `isError`, type [`.../common/forbidden`](https://errors.swepay.com.br/common/forbidden) |
+| Caller lacks required role (in-tool) | HTTP 200 | envelope `isError`, type [`.../common/forbidden`](https://errors.swepay.com.br/common/forbidden) |
 | Authorizer rejected the JWT | HTTP 401 | returned by API Gateway, before the Lambda runs |
 
 Problem-type URIs resolve to the Swepay error catalog at `https://errors.swepay.com.br`. The
@@ -188,7 +188,7 @@ response. Full exception detail is written to CloudWatch logs internally.
 
 `AddNativeMcpTelemetry()` emits CloudWatch EMF metrics to stdout — `mcp.tools.call.count`,
 `mcp.tools.call.duration_ms`, `mcp.tools.list.count`, `mcp.initialize.count`,
-`mcp.protocol.errors.count`, `mcp.validation.failures.count`, `mcp.scope.denied.count` — plus a
+`mcp.protocol.errors.count`, `mcp.validation.failures.count`, `mcp.role.denied.count` — plus a
 structured JSON log line per call. Plug in distributed tracing by registering an `IMcpTracer`.
 
 ## Native AOT notes

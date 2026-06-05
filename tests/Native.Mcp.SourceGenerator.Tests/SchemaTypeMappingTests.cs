@@ -1,5 +1,5 @@
 using System.Text.Json;
-using FluentAssertions;
+using Shouldly;
 
 namespace Native.Mcp.SourceGenerator.Tests;
 
@@ -9,7 +9,7 @@ public sealed class SchemaTypeMappingTests
     private static JsonElement Schema(string source, string toolName)
     {
         var json = GeneratorTestDriver.GetSchema(source, toolName);
-        json.Should().NotBeNull();
+        json.ShouldNotBeNull();
         return JsonDocument.Parse(json!).RootElement.Clone();
     }
 
@@ -41,12 +41,12 @@ public sealed class SchemaTypeMappingTests
         """;
 
         var props = Schema(source, "TemporalTool").GetProperty("properties");
-        props.GetProperty("ratio").GetProperty("type").GetString().Should().Be("number");
-        props.GetProperty("amount").GetProperty("type").GetString().Should().Be("number");
-        props.GetProperty("when").GetProperty("format").GetString().Should().Be("date-time");
-        props.GetProperty("whenOffset").GetProperty("format").GetString().Should().Be("date-time");
-        props.GetProperty("id").GetProperty("format").GetString().Should().Be("uuid");
-        props.GetProperty("optionalCount").GetProperty("type").GetString().Should().Be("integer");
+        props.GetProperty("ratio").GetProperty("type").GetString().ShouldBe("number");
+        props.GetProperty("amount").GetProperty("type").GetString().ShouldBe("number");
+        props.GetProperty("when").GetProperty("format").GetString().ShouldBe("date-time");
+        props.GetProperty("whenOffset").GetProperty("format").GetString().ShouldBe("date-time");
+        props.GetProperty("id").GetProperty("format").GetString().ShouldBe("uuid");
+        props.GetProperty("optionalCount").GetProperty("type").GetString().ShouldBe("integer");
     }
 
     [Fact]
@@ -78,10 +78,10 @@ public sealed class SchemaTypeMappingTests
         """;
 
         var props = Schema(source, "LengthTool").GetProperty("properties");
-        props.GetProperty("code").GetProperty("minLength").GetInt32().Should().Be(2);
-        props.GetProperty("code").GetProperty("maxLength").GetInt32().Should().Be(8);
-        props.GetProperty("tags").GetProperty("type").GetString().Should().Be("array");
-        props.GetProperty("tags").GetProperty("minItems").GetInt32().Should().Be(1);
+        props.GetProperty("code").GetProperty("minLength").GetInt32().ShouldBe(2);
+        props.GetProperty("code").GetProperty("maxLength").GetInt32().ShouldBe(8);
+        props.GetProperty("tags").GetProperty("type").GetString().ShouldBe("array");
+        props.GetProperty("tags").GetProperty("minItems").GetInt32().ShouldBe(1);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public sealed class SchemaTypeMappingTests
         }
         """;
 
-        GeneratorTestDriver.GetSchema(source, "NonPartialTool").Should().BeNull();
+        GeneratorTestDriver.GetSchema(source, "NonPartialTool").ShouldBeNull();
     }
 
     [Fact]
@@ -123,8 +123,8 @@ public sealed class SchemaTypeMappingTests
         """;
 
         var schema = GeneratorTestDriver.GetSchema(source, "GlobalTool");
-        schema.Should().NotBeNull();
-        JsonDocument.Parse(schema!).RootElement.GetProperty("type").GetString().Should().Be("object");
+        schema.ShouldNotBeNull();
+        JsonDocument.Parse(schema!).RootElement.GetProperty("type").GetString().ShouldBe("object");
     }
 
     [Fact]
@@ -136,6 +136,6 @@ public sealed class SchemaTypeMappingTests
         public sealed class Bar : IFoo { }
         """;
 
-        GeneratorTestDriver.GetSchema(source, "Bar").Should().BeNull();
+        GeneratorTestDriver.GetSchema(source, "Bar").ShouldBeNull();
     }
 }

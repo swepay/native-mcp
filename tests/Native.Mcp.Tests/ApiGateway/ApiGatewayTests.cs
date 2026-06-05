@@ -1,6 +1,6 @@
 using System.Text;
 using Amazon.Lambda.APIGatewayEvents;
-using FluentAssertions;
+using Shouldly;
 using Native.Mcp.ApiGateway;
 
 namespace Native.Mcp.Tests.ApiGateway;
@@ -40,14 +40,14 @@ public sealed class ApiGatewayTests
 
         var claims = ApiGatewayClaimsExtractor.Extract(request);
 
-        claims["sub"].Should().Be("u1");
-        claims["scope"].Should().Be("a b");
+        claims["sub"].ShouldBe("u1");
+        claims["scope"].ShouldBe("a b");
     }
 
     [Fact]
     public void ClaimsExtractor_WhenNoAuthorizer_ReturnsEmpty()
     {
-        ApiGatewayClaimsExtractor.Extract(RequestWith()).Should().BeEmpty();
+        ApiGatewayClaimsExtractor.Extract(RequestWith()).ShouldBeEmpty();
     }
 
     [Fact]
@@ -64,10 +64,10 @@ public sealed class ApiGatewayTests
 
         var adapted = ApiGatewayRequestAdapter.Adapt(request);
 
-        adapted.Body.Should().Be("""{"jsonrpc":"2.0"}""");
-        adapted.Context.RawJwt.Should().Be("eyJ-token");
-        adapted.Context.CorrelationId.Should().Be("corr-9");
-        adapted.Context.IdempotencyKey.Should().Be("idem-9");
+        adapted.Body.ShouldBe("""{"jsonrpc":"2.0"}""");
+        adapted.Context.RawJwt.ShouldBe("eyJ-token");
+        adapted.Context.CorrelationId.ShouldBe("corr-9");
+        adapted.Context.IdempotencyKey.ShouldBe("idem-9");
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public sealed class ApiGatewayTests
         var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes("""{"jsonrpc":"2.0"}"""));
         var request = RequestWith(body: encoded, base64: true);
 
-        ApiGatewayRequestAdapter.Adapt(request).Body.Should().Be("""{"jsonrpc":"2.0"}""");
+        ApiGatewayRequestAdapter.Adapt(request).Body.ShouldBe("""{"jsonrpc":"2.0"}""");
     }
 
     [Fact]
@@ -84,9 +84,9 @@ public sealed class ApiGatewayTests
     {
         var response = ApiGatewayResponseBuilder.Build(new McpDispatchResult(200, "{}"));
 
-        response.StatusCode.Should().Be(200);
-        response.Body.Should().Be("{}");
-        response.Headers["content-type"].Should().Be("application/json");
+        response.StatusCode.ShouldBe(200);
+        response.Body.ShouldBe("{}");
+        response.Headers["content-type"].ShouldBe("application/json");
     }
 
     [Fact]
@@ -94,8 +94,8 @@ public sealed class ApiGatewayTests
     {
         var response = ApiGatewayResponseBuilder.Build(new McpDispatchResult(202, string.Empty));
 
-        response.StatusCode.Should().Be(202);
-        response.Body.Should().BeEmpty();
-        response.Headers.Should().BeEmpty();
+        response.StatusCode.ShouldBe(202);
+        response.Body.ShouldBeEmpty();
+        response.Headers.ShouldBeEmpty();
     }
 }

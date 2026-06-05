@@ -26,10 +26,10 @@ public interface IMcpMetrics
     /// <param name="toolName">The tool name.</param>
     void RecordValidationFailure(string toolName);
 
-    /// <summary>Records a scope/permission denial for a tool.</summary>
+    /// <summary>Records a role/permission denial for a tool.</summary>
     /// <param name="toolName">The tool name.</param>
-    /// <param name="requiredScope">The scope that was required (may be empty if unknown).</param>
-    void RecordScopeDenied(string toolName, string requiredScope);
+    /// <param name="requiredRole">The role that was required (may be empty if unknown).</param>
+    void RecordRoleDenied(string toolName, string requiredRole);
 }
 
 /// <summary>A no-op <see cref="IMcpMetrics"/> used when telemetry is not configured.</summary>
@@ -68,7 +68,7 @@ public sealed class NoOpMcpMetrics : IMcpMetrics
     }
 
     /// <inheritdoc/>
-    public void RecordScopeDenied(string toolName, string requiredScope)
+    public void RecordRoleDenied(string toolName, string requiredRole)
     {
     }
 }

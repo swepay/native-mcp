@@ -1,5 +1,5 @@
 using System.Text.Json;
-using FluentAssertions;
+using Shouldly;
 using Native.Mcp.Telemetry;
 using Native.Mcp.Testing;
 
@@ -19,18 +19,18 @@ public sealed class TelemetryTests
         using var doc = JsonDocument.Parse(line);
         var root = doc.RootElement;
 
-        root.GetProperty("tool_name").GetString().Should().Be("ping");
-        root.GetProperty("success").GetString().Should().Be("true");
-        root.GetProperty("mcp.tools.call.count").GetInt32().Should().Be(1);
-        root.GetProperty("mcp.tools.call.duration_ms").GetInt64().Should().Be(7);
+        root.GetProperty("tool_name").GetString().ShouldBe("ping");
+        root.GetProperty("success").GetString().ShouldBe("true");
+        root.GetProperty("mcp.tools.call.count").GetInt32().ShouldBe(1);
+        root.GetProperty("mcp.tools.call.duration_ms").GetInt64().ShouldBe(7);
 
         var aws = root.GetProperty("_aws");
-        aws.GetProperty("Timestamp").GetInt64().Should().BeGreaterThan(0);
+        aws.GetProperty("Timestamp").GetInt64().ShouldBeGreaterThan(0);
         var cw = aws.GetProperty("CloudWatchMetrics")[0];
-        cw.GetProperty("Namespace").GetString().Should().Be("Swepay/Mcp");
+        cw.GetProperty("Namespace").GetString().ShouldBe("Swepay/Mcp");
         cw.GetProperty("Metrics").EnumerateArray()
             .Select(m => m.GetProperty("Name").GetString())
-            .Should().Contain("mcp.tools.call.count");
+            .ShouldContain("mcp.tools.call.count");
     }
 
     [Fact]
@@ -42,8 +42,8 @@ public sealed class TelemetryTests
         metrics.RecordProtocolError(-32601);
 
         using var doc = JsonDocument.Parse(writer.ToString().Trim());
-        doc.RootElement.GetProperty("error_code").GetString().Should().Be("-32601");
-        doc.RootElement.GetProperty("mcp.protocol.errors.count").GetInt32().Should().Be(1);
+        doc.RootElement.GetProperty("error_code").GetString().ShouldBe("-32601");
+        doc.RootElement.GetProperty("mcp.protocol.errors.count").GetInt32().ShouldBe(1);
     }
 
     [Fact]
@@ -62,17 +62,17 @@ public sealed class TelemetryTests
         logger.LogToolExecuted(context, "success", durationMs: 12, envelopeSuccess: true);
 
         var raw = writer.ToString();
-        raw.Should().NotContain("super-secret-jwt-value");
-        raw.Should().NotContain("alice@acme.com.br");
+        raw.ShouldNotContain("super-secret-jwt-value");
+        raw.ShouldNotContain("alice@acme.com.br");
 
         using var doc = JsonDocument.Parse(raw.Trim());
         var root = doc.RootElement;
-        root.GetProperty("toolName").GetString().Should().Be("provision");
-        root.GetProperty("correlationId").GetString().Should().Be("trial-01");
-        root.GetProperty("serviceAccountId").GetString().Should().Be("trial-provisioner-bot");
-        root.GetProperty("outcome").GetString().Should().Be("success");
-        root.GetProperty("durationMs").GetInt32().Should().Be(12);
-        root.GetProperty("envelopeSuccess").GetBoolean().Should().BeTrue();
-        root.GetProperty("level").GetString().Should().Be("INFO");
+        root.GetProperty("toolName").GetString().ShouldBe("provision");
+        root.GetProperty("correlationId").GetString().ShouldBe("trial-01");
+        root.GetProperty("serviceAccountId").GetString().ShouldBe("trial-provisioner-bot");
+        root.GetProperty("outcome").GetString().ShouldBe("success");
+        root.GetProperty("durationMs").GetInt32().ShouldBe(12);
+        root.GetProperty("envelopeSuccess").GetBoolean().ShouldBeTrue();
+        root.GetProperty("level").GetString().ShouldBe("INFO");
     }
 }

@@ -14,7 +14,7 @@ you reuse the same edge stack as every other Swepay Lambda.
 |---|---|
 | API Gateway **JWT Authorizer** (edge) | Authentication — validates the JWT (signature/exp/iss/aud) before the Lambda runs. |
 | **NativeLambdaRouter** | Routing (`POST /mcp`), claims extraction into `RouteContext`, health checks, the Lambda entry point. |
-| **Native.Mcp** | JSON-RPC dispatch (`initialize`/`tools/list`/`tools/call`) and **per-tool** authorization (`context.HasScope`). |
+| **Native.Mcp** | JSON-RPC dispatch (`initialize`/`tools/list`/`tools/call`) and **per-tool** authorization (`context.HasRole`). |
 
 > MCP is a single route. The router can only see the path `/mcp`, not the tool name (which is in
 > the JSON-RPC body), so per-tool authorization must live in the tools. The MCP route is registered

@@ -83,15 +83,15 @@ public sealed class McpMetrics : IMcpMetrics
     }
 
     /// <inheritdoc/>
-    public void RecordScopeDenied(string toolName, string requiredScope)
+    public void RecordRoleDenied(string toolName, string requiredRole)
     {
         var root = new JsonObject
         {
             ["tool_name"] = toolName,
-            ["required_scope"] = requiredScope,
-            ["mcp.scope.denied.count"] = 1,
+            ["required_role"] = requiredRole,
+            ["mcp.role.denied.count"] = 1,
         };
-        Emit(root, ["tool_name", "required_scope"], (Name: "mcp.scope.denied.count", Unit: UnitCount));
+        Emit(root, ["tool_name", "required_role"], (Name: "mcp.role.denied.count", Unit: UnitCount));
     }
 
     private void Emit(JsonObject root, string[] dimensionKeys, params (string Name, string Unit)[] metrics)

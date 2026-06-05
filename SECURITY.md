@@ -14,7 +14,7 @@ do not open public issues for security reports.
 - never emits the raw JWT, PII claims (e.g. email, `sub`), exception messages or stack traces in
   any response (LGPD). Unhandled exceptions are mapped to a generic `internal-error` problem;
   full detail is written only to CloudWatch logs;
-- treats in-tool scope checks as defense in depth on top of the edge Authorizer.
+- treats in-tool role checks as defense in depth on top of the edge Authorizer.
 
 Tools you build on top of `Native.Mcp` are responsible for not logging or returning the raw JWT
 (`McpExecutionContext.RawJwt`) or sensitive claim values.

@@ -53,7 +53,7 @@ public sealed class BridgeTests
                 ["x-correlation-id"] = "c-1",
                 ["x-idempotency-key"] = "i-1",
             },
-            Claims = new Dictionary<string, string> { ["sub"] = "svc", ["scope"] = "a b" },
+            Claims = new Dictionary<string, string> { ["sub"] = "svc", ["roles"] = "a,b" },
         };
 
         var ctx = McpRouteContextMapper.ToRequestContext(routeContext);

@@ -13,21 +13,71 @@ public sealed class McpExecutionContextTests
         startedAt: DateTimeOffset.UtcNow);
 
     [Fact]
-    public void Scopes_ParsedFromSpaceDelimitedScopeClaim()
+    public void Roles_ParsedFromCommaSeparatedRolesClaim()
     {
-        var ctx = Build(new Dictionary<string, string> { ["scope"] = "a b c" });
+        var ctx = Build(new Dictionary<string, string> { ["roles"] = "admin,trial-provisioner" });
 
-        ctx.Scopes.ShouldBe(new[] { "a", "b", "c" });
-        ctx.HasScope("b").ShouldBeTrue();
-        ctx.HasScope("d").ShouldBeFalse();
+        ctx.Roles.ShouldBe(new[] { "admin", "trial-provisioner" });
+        ctx.HasRole("admin").ShouldBeTrue();
+        ctx.HasRole("missing").ShouldBeFalse();
+        ctx.HasAnyRole("x", "trial-provisioner").ShouldBeTrue();
     }
 
     [Fact]
-    public void Scopes_FallBackToScpClaim()
+    public void Roles_ParsedFromSingleRoleClaim()
     {
-        var ctx = Build(new Dictionary<string, string> { ["scp"] = "read write" });
+        var ctx = Build(new Dictionary<string, string> { ["role"] = "operator" });
 
-        ctx.Scopes.ShouldBe(new[] { "read", "write" });
+        ctx.Roles.ShouldBe(new[] { "operator" });
+        ctx.HasRole("operator").ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Roles_ParsedFromJsonArrayClaim()
+    {
+        var ctx = Build(new Dictionary<string, string> { ["cognito:groups"] = """["a","b"]""" });
+
+        ctx.Roles.ShouldBe(new[] { "a", "b" });
+    }
+
+    [Fact]
+    public void Roles_MergedAndDeduplicatedAcrossClaimTypes()
+    {
+        var ctx = Build(new Dictionary<string, string>
+        {
+            ["role"] = "admin",
+            ["roles"] = "admin,reader",
+            ["groups"] = "writer",
+        });
+
+        ctx.Roles.ShouldBe(new[] { "admin", "reader", "writer" });
+    }
+
+    [Fact]
+    public void RequireRole_ThrowsForbiddenWhenMissing()
+    {
+        var ctx = Build(new Dictionary<string, string> { ["roles"] = "reader" });
+
+        var ex = Should.Throw<McpForbiddenException>(() => ctx.RequireRole("writer"));
+        ex.RequiredRole.ShouldBe("writer");
+    }
+
+    [Fact]
+    public void RequireRole_DoesNotThrowWhenPresent()
+    {
+        var ctx = Build(new Dictionary<string, string> { ["roles"] = "writer" });
+
+        Should.NotThrow(() => ctx.RequireRole("writer"));
+    }
+
+    [Fact]
+    public void HasClaim_MatchesExactAndDelimitedValues()
+    {
+        var ctx = Build(new Dictionary<string, string> { ["aud"] = "api gateway", ["tier"] = "gold" });
+
+        ctx.HasClaim("tier", "gold").ShouldBeTrue();
+        ctx.HasClaim("aud", "gateway").ShouldBeTrue();
+        ctx.HasClaim("aud", "missing").ShouldBeFalse();
     }
 
     [Fact]
@@ -40,13 +90,13 @@ public sealed class McpExecutionContextTests
     }
 
     [Fact]
-    public void NoClaims_YieldsEmptyScopesAndSubject()
+    public void NoClaims_YieldsEmptyRolesAndSubject()
     {
         var ctx = Build(new Dictionary<string, string>());
 
-        ctx.Scopes.ShouldBeEmpty();
+        ctx.Roles.ShouldBeEmpty();
         ctx.Subject.ShouldBeEmpty();
         ctx.Audience.ShouldBeEmpty();
-        ctx.HasScope("x").ShouldBeFalse();
+        ctx.HasRole("x").ShouldBeFalse();
     }
 }

@@ -11,7 +11,7 @@
 
     <!-- Package metadata -->
     <PackageId>Native.Mcp.NativeLambdaRouter</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Authors>Swepay</Authors>
     <Description>Hosts a Native.Mcp server inside NativeLambdaRouter: maps a single POST /mcp route to the MCP JSON-RPC dispatcher, reusing the router's routing, claims extraction and Lambda entry point. The recommended way to run an MCP server in the Swepay Native ecosystem.</Description>
     <PackageTags>mcp;model-context-protocol;native-aot;serverless;lambda;native-lambda-router</PackageTags>

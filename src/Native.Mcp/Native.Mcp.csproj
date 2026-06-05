@@ -11,7 +11,7 @@
 
     <!-- Package metadata -->
     <PackageId>Native.Mcp</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Authors>Swepay</Authors>
     <Description>Transport-agnostic Model Context Protocol (MCP) server runtime for .NET 10 Native AOT. JSON-RPC 2.0 routing, declarative tools, source-generated inputSchema, canonical Swepay envelope, RFC 9457 problem details, and CloudWatch EMF telemetry. Host it with Native.Mcp.NativeLambdaRouter or Native.Mcp.ApiGateway.</Description>
     <PackageTags>mcp;model-context-protocol;json-rpc;native-aot;serverless;lambda;api-gateway</PackageTags>

@@ -234,6 +234,14 @@ public sealed class McpJsonRpcDispatcher
         {
             throw;
         }
+        catch (McpForbiddenException forbidden)
+        {
+            // A RequireRole guard tripped: map to a canonical forbidden envelope (not internal-error).
+            _metrics.RecordRoleDenied(toolName, forbidden.RequiredRole);
+            _metrics.RecordToolCall(toolName, success: false, DurationMs(startedAt));
+            var problem = McpProblems.Forbidden(forbidden.Message, requestId);
+            return FailToolCall(request.Id, problem, context, startedAt, outcome: "forbidden");
+        }
         catch (Exception ex)
         {
             // Bug in the tool: log internally (with details), return a leak-free envelope.
@@ -254,7 +262,7 @@ public sealed class McpJsonRpcDispatcher
             var isForbidden = string.Equals(error.Type, ProblemTypes.Forbidden, StringComparison.Ordinal);
             if (isForbidden)
             {
-                _metrics.RecordScopeDenied(toolName, error.Detail);
+                _metrics.RecordRoleDenied(toolName, error.Detail);
             }
 
             _metrics.RecordToolCall(toolName, success: false, DurationMs(startedAt));

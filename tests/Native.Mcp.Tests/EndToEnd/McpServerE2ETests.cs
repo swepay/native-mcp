@@ -16,6 +16,7 @@ public sealed class McpServerE2ETests
             .AddTool<PingTool>()
             .AddTool<EchoTool>()
             .AddTool<ScopedTool>()
+            .AddTool<RequireRoleTool>()
             .AddTool<FailingTool>()
             .ConfigureServices(s => s.AddSingleton<INativeValidator<EchoInput>, EchoInputValidator>());
 
@@ -67,7 +68,7 @@ public sealed class McpServerE2ETests
         var response = await client.CallToolAsync("ping", new { }, new McpRequestOptions
         {
             CorrelationId = "corr-1",
-            Scopes = ["test:read"],
+            Roles = ["test-reader"],
         });
 
         response.ShouldBeSuccessful();
@@ -112,18 +113,45 @@ public sealed class McpServerE2ETests
     }
 
     [Fact]
-    public async Task ToolsCall_Scoped_WithScope_Succeeds()
+    public async Task ToolsCall_Scoped_WithRole_Succeeds()
     {
         await using var host = BuildHost();
         var client = host.CreateClient();
 
         var response = await client.CallToolAsync("scoped", new { value = "x" }, new McpRequestOptions
         {
-            Scopes = [ScopedTool.RequiredScope],
+            Roles = [ScopedTool.RequiredRole],
         });
 
         response.ShouldBeSuccessful();
         response.Envelope!.DataAs<ScopedOutput>()!.Value.ShouldBe("x");
+    }
+
+    [Fact]
+    public async Task ToolsCall_RequireRole_WithoutRole_ReturnsForbidden()
+    {
+        await using var host = BuildHost();
+        var client = host.CreateClient();
+
+        var response = await client.CallToolAsync("require_role", new { value = "x" });
+
+        response.ShouldBeError().ShouldHaveProblemType(ProblemTypes.Forbidden);
+        response.Envelope!.Error!.Detail.ShouldContain(RequireRoleTool.RequiredRole);
+    }
+
+    [Fact]
+    public async Task ToolsCall_RequireRole_WithRole_Succeeds()
+    {
+        await using var host = BuildHost();
+        var client = host.CreateClient();
+
+        var response = await client.CallToolAsync("require_role", new { value = "y" }, new McpRequestOptions
+        {
+            Roles = [RequireRoleTool.RequiredRole],
+        });
+
+        response.ShouldBeSuccessful();
+        response.Envelope!.DataAs<ScopedOutput>()!.Value.ShouldBe("y");
     }
 
     [Fact]

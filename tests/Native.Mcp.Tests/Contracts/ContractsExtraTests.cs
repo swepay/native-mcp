@@ -80,7 +80,7 @@ public sealed class ContractsExtraTests
         NoOpMcpMetrics.Instance.RecordInitialize();
         NoOpMcpMetrics.Instance.RecordProtocolError(-1);
         NoOpMcpMetrics.Instance.RecordValidationFailure("t");
-        NoOpMcpMetrics.Instance.RecordScopeDenied("t", "s");
+        NoOpMcpMetrics.Instance.RecordRoleDenied("t", "s");
         NoOpMcpToolLogger.Instance.LogToolExecuted(Context(DateTimeOffset.UtcNow), "x", 1, true);
         using (NoOpMcpTracer.Instance.BeginSubsegment(McpTraceSegments.Parse))
         {

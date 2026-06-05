@@ -13,7 +13,7 @@ namespace Native.Mcp.NativeLambdaRouter;
 /// </summary>
 /// <remarks>
 /// Authentication is the API Gateway JWT Authorizer's job (edge); per-tool authorization lives
-/// in the tools (<see cref="McpExecutionContext.HasScope"/>). The MCP route is therefore
+/// in the tools (<see cref="McpExecutionContext.HasRole"/>). The MCP route is therefore
 /// registered as <c>AllowAnonymous</c> at the router so there is no redundant auth layer — the
 /// validated claims still flow through to the tools.
 /// Override <see cref="McpPath"/> to change the route.

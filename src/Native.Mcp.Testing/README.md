@@ -20,7 +20,7 @@ var client = host.CreateClient();
 var response = await client.CallToolAsync("ping", new { }, new McpRequestOptions
 {
     CorrelationId = "test-001",
-    Scopes = ["sample:ping"],
+    Roles = ["sample-ping"],
 });
 
 response.ShouldBeSuccessful();
@@ -42,7 +42,7 @@ response.Envelope!.DataAs<PingOutput>()!.Status.ShouldBe("ok");
 ## Unit-testing a tool directly
 
 ```csharp
-var ctx = new McpExecutionContextBuilder().WithScope("sample:ping").Build();
+var ctx = new McpExecutionContextBuilder().WithRole("sample-ping").Build();
 var result = await new PingTool().ExecuteAsync(new PingInput(), ctx, default);
 result.ShouldBeSuccess();
 ```

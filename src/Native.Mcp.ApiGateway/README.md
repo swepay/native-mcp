@@ -46,7 +46,7 @@ await LambdaBootstrapBuilder.Create(handler, serializer).Build().RunAsync();
 - **`ApiGatewayResponseBuilder`** — wraps the dispatcher result into the proxy response.
 
 Authentication is the API Gateway JWT Authorizer's job (edge); per-tool authorization lives in the
-tools (`McpExecutionContext.HasScope`).
+tools (`McpExecutionContext.HasRole`).
 
 ## License
 

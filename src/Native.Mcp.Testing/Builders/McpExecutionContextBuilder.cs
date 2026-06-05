@@ -7,7 +7,7 @@ namespace Native.Mcp.Testing;
 public sealed class McpExecutionContextBuilder
 {
     private readonly Dictionary<string, string> _claims = new(StringComparer.Ordinal);
-    private readonly List<string> _scopes = new();
+    private readonly List<string> _roles = new();
     private string _toolName = "test_tool";
     private string _requestId = "test-request";
     private string _correlationId = "test-correlation";
@@ -89,25 +89,25 @@ public sealed class McpExecutionContextBuilder
     /// <returns>This builder.</returns>
     public McpExecutionContextBuilder WithAudience(string audience) => WithClaim("aud", audience);
 
-    /// <summary>Grants a scope (added to the <c>scope</c> claim).</summary>
-    /// <param name="scope">The scope to grant.</param>
+    /// <summary>Grants a role (rendered into the <c>roles</c> claim).</summary>
+    /// <param name="role">The role to grant.</param>
     /// <returns>This builder.</returns>
-    public McpExecutionContextBuilder WithScope(string scope)
+    public McpExecutionContextBuilder WithRole(string role)
     {
-        if (!_scopes.Contains(scope))
+        if (!_roles.Contains(role))
         {
-            _scopes.Add(scope);
+            _roles.Add(role);
         }
 
         return this;
     }
 
-    /// <summary>Ensures a scope is NOT granted.</summary>
-    /// <param name="scope">The scope to remove.</param>
+    /// <summary>Ensures a role is NOT granted.</summary>
+    /// <param name="role">The role to remove.</param>
     /// <returns>This builder.</returns>
-    public McpExecutionContextBuilder WithoutScope(string scope)
+    public McpExecutionContextBuilder WithoutRole(string role)
     {
-        _scopes.Remove(scope);
+        _roles.Remove(role);
         return this;
     }
 
@@ -115,9 +115,9 @@ public sealed class McpExecutionContextBuilder
     /// <returns>The constructed context.</returns>
     public McpExecutionContext Build()
     {
-        if (_scopes.Count > 0)
+        if (_roles.Count > 0)
         {
-            _claims["scope"] = string.Join(" ", _scopes);
+            _claims["roles"] = string.Join(",", _roles);
         }
 
         return new McpExecutionContext(

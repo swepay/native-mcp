@@ -1,9 +1,11 @@
-# Native.Mcp — Arquitetura e Mudanças (v1 → v2)
+# Native.Mcp — Arquitetura e Mudanças (v1 → v2.1)
 
-> **Status:** v2.0.0
+> **Status:** v2.1.0
 > **Audiência:** engenharia Swepay e consumidores das libs `Native.*`
-> **Resumo:** a v2 separa o **protocolo MCP** (core, transport-agnostic) das **camadas de
-> transporte/hospedagem**, e adiciona a integração de primeira classe com o `NativeLambdaRouter`.
+> **Resumo:** a v2.0 separa o **protocolo MCP** (core, transport-agnostic) das **camadas de
+> transporte/hospedagem** e adiciona a integração de primeira classe com o `NativeLambdaRouter`;
+> a v2.1 troca o modelo de autorização de **scopes** para **roles** (ADR-0006), espelhando o RBAC
+> do `NativeLambdaRouter`.
 
 ---
 
@@ -27,7 +29,7 @@ NativeLambdaRouter  ── roteia POST /mcp, extrai claims p/ RouteContext, heal
 McpJsonRpcDispatcher (Native.Mcp core)
    ├─ parse JSON-RPC  → initialize | tools/list | tools/call
    ├─ tools/call:  resolve tool → desserializa input (JsonTypeInfo) → valida → executa
-   │      └─ tool faz authz fino:  context.HasScope("...")
+   │      └─ tool faz authz fino:  context.HasRole("...")
    ├─ envelope canônico Swepay  (success/data/error/metadata)  + RFC 9457
    └─ telemetria:  EMF (CloudWatch) + log estruturado + subsegmento de trace
    ▼
@@ -52,7 +54,7 @@ ApiGatewayResponse (HTTP 200 + envelope)  → API Gateway → Cliente
 |---|---|
 | **API Gateway JWT Authorizer** (edge) | **Autenticação** — valida o JWT antes do Lambda iniciar. |
 | **NativeLambdaRouter** | **Roteamento** (`POST /mcp`), extração de claims, health checks, entrypoint Lambda. |
-| **Native.Mcp** | **Protocolo** JSON-RPC + **autorização por tool** (`context.HasScope`). |
+| **Native.Mcp** | **Protocolo** JSON-RPC + **autorização por tool** (`context.HasRole`). |
 
 > ⚠️ MCP é **rota única**. O router só enxerga o path `/mcp`, **não** o nome da tool (que está no
 > corpo JSON-RPC). Por isso a autorização **por tool** obrigatoriamente vive nas tools. A rota
@@ -156,7 +158,37 @@ samples/
 
 ---
 
-## 7. Versionamento
+## 7. Autorização baseada em roles (ADR-0006, v2.1.0)
 
-A mudança de layout **remove tipos** de `Native.Mcp` (breaking) → família publicada como
-**2.0.0**. O release é dirigido pela tag (`v2.0.0`) — ver `CONTRIBUTING.md`.
+A v2.1.0 substitui o modelo de **scopes** (OAuth) pelo modelo de **roles** (RBAC), para ficar
+consistente com o `NativeLambdaRouter` — ver [`docs/adr/ADR-0006-authn-authz.md`](adr/ADR-0006-authn-authz.md).
+
+- **Removido (breaking):** `McpExecutionContext.HasScope(...)` e a propriedade `Scopes`.
+- **Adicionado:** `HasRole(role)`, `HasAnyRole(params roles)`, `RequireRole(role)`,
+  `HasClaim(type, value)`, e `Roles` (`IReadOnlyList<string>`).
+- **Leitura de roles** (espelha o router): claims `role`, `roles`, `cognito:groups`, `groups`;
+  formatos *single* / *comma-separated* / *JSON array*; case-sensitive; merge + dedup.
+- **`RequireRole`** lança `McpForbiddenException`, que o dispatcher mapeia para o envelope
+  canônico `common/forbidden` (HTTP 200, `isError=true`) — nunca vira internal-error.
+- **Telemetria:** métrica `mcp.scope.denied.count` → `mcp.role.denied.count` (dimensão `required_role`).
+
+Padrão em tools:
+
+```csharp
+if (!context.HasRole("swepay-ng-trial-provisioner"))
+    return McpToolResult<TOut>.Failure(McpProblems.Forbidden("Required role: ...", context.RequestId));
+// ou, como guarda que lança:
+context.RequireRole("swepay-ng-trial-provisioner");
+```
+
+Camadas: autenticação no **JWT Authorizer** (borda); autorização **por tool** no `Native.Mcp`;
+policies de domínio (naming/quota/ownership) nos **backends**. A rota `/mcp` é `AllowAnonymous`
+no router (rota única não enxerga o nome da tool).
+
+## 8. Versionamento
+
+- **v2.0.0** — split de transporte (core transport-agnostic + pacotes de hosting). Breaking.
+- **v2.1.0** — modelo de autorização por roles (ADR-0006). Breaking (remoção de `HasScope`).
+
+Como nenhuma versão tem consumidor em produção, a família é publicada diretamente em **2.1.0**.
+O release é dirigido pela tag (`v2.1.0`) — ver `CONTRIBUTING.md`.

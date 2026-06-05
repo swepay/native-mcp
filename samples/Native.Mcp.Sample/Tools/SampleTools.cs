@@ -55,17 +55,17 @@ public sealed record EchoOutput
     public required string Echo { get; init; }
 }
 
-/// <summary>Echoes the input message. Requires the <c>sample:echo</c> scope (defense in depth).</summary>
+/// <summary>Echoes the input message. Requires the <c>sample-echo</c> role (defense in depth).</summary>
 public sealed partial class EchoTool : IMcpTool<EchoInput, EchoOutput>
 {
-    /// <summary>Scope required to call this tool.</summary>
-    public const string RequiredScope = "sample:echo";
+    /// <summary>Role required to call this tool.</summary>
+    public const string RequiredRole = "sample-echo";
 
     /// <inheritdoc/>
     public static string Name => "echo";
 
     /// <inheritdoc/>
-    public static string Description => "Echoes the provided message. Requires the sample:echo scope.";
+    public static string Description => "Echoes the provided message. Requires the sample-echo role.";
 
     /// <inheritdoc/>
     public Task<McpToolResult<EchoOutput>> ExecuteAsync(
@@ -73,11 +73,9 @@ public sealed partial class EchoTool : IMcpTool<EchoInput, EchoOutput>
         McpExecutionContext context,
         CancellationToken cancellationToken)
     {
-        if (!context.HasScope(RequiredScope))
-        {
-            return Task.FromResult(McpToolResult<EchoOutput>.Failure(
-                McpProblems.Forbidden($"Required scope: {RequiredScope}", context.RequestId)));
-        }
+        // Authorization (defense in depth) — see ADR-0006. RequireRole maps a missing role to a
+        // canonical forbidden envelope automatically.
+        context.RequireRole(RequiredRole);
 
         return Task.FromResult(McpToolResult<EchoOutput>.Success(new EchoOutput { Echo = input.Message }));
     }

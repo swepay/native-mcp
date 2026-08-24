@@ -23,8 +23,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NativeLambdaRouter" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" VersionOverride="3.0.1" />
+    <PackageReference Include="Amazon.Lambda.Core" VersionOverride="3.3.0" />
+    <PackageReference Include="NativeLambdaRouter" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
   </ItemGroup>
 
   <ItemGroup>
